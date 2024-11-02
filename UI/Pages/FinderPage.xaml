@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="UI.Pages.FinderPage"
+			 Title="Finder">
+	<ContentPage.Resources>
+		<Style x:Key="Invalid" TargetType="Entry">
+			<Setter Property="BackgroundColor" Value="Red" />
+		</Style>
+		<Style x:Key="Valid" TargetType="Entry">
+			<Setter Property="BackgroundColor" Value="WhiteSmoke" />
+		</Style>
+	</ContentPage.Resources>
+	<ScrollView>
+		<VerticalStackLayout
+			Padding="10" >
+			<Label
+				Text="Characters"
+				VerticalOptions="Center"
+				HorizontalOptions="Start"
+				FontAttributes="Bold"
+				FontSize="14" />
+			<Grid
+				ColumnSpacing="5" >
+				<Grid.RowDefinitions>
+					<RowDefinition Height="45" />
+					<RowDefinition Height="Auto" />
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition />
+					<ColumnDefinition />
+					<ColumnDefinition />
+				</Grid.ColumnDefinitions>
+				<Entry
+					x:Name="EntryCharacters"
+					ClearButtonVisibility="WhileEditing"
+					IsTextPredictionEnabled="False"
+					IsSpellCheckEnabled="False"
+					TextTransform="Lowercase"
+					Grid.Row="0"
+					Grid.Column="0"
+					Grid.ColumnSpan="2"
+					Keyboard="Text" />
+				<Button
+					x:Name="ButtonSearch"
+					Text="Search"
+					Clicked="ButtonSearch_Clicked"
+					Grid.Row="0"
+					Grid.Column="2" />
+				<HorizontalStackLayout
+					Grid.Row="1"
+					Grid.Column="0" >
+					<Label
+						Text="Only These"
+						VerticalTextAlignment="Center" />
+					<CheckBox
+						x:Name="CheckBoxOnlyThese"
+						IsChecked="False" />
+				</HorizontalStackLayout>
+				<HorizontalStackLayout
+					Grid.Row="1"
+					Grid.Column="1" >
+					<Label
+						Text="Include All"
+						VerticalTextAlignment="Center" />
+					<CheckBox
+						x:Name="CheckBoxIncludeAll"
+						IsChecked="True" />
+				</HorizontalStackLayout>
+			</Grid>
+			<Label
+				Text="Word Length"
+				VerticalOptions="Center"
+				HorizontalOptions="Start"
+				FontAttributes="Bold"
+				FontSize="14" />
+			<Grid
+				RowSpacing="5"
+				ColumnSpacing="5"
+				Padding="0,10,0,10" >
+				<Grid.RowDefinitions>
+					<RowDefinition/>
+					<RowDefinition/>
+					<RowDefinition/>
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition/>
+					<ColumnDefinition/>
+					<ColumnDefinition/>
+					<ColumnDefinition/>
+				</Grid.ColumnDefinitions>
+				<RadioButton
+					x:Name="RadioButtonAny"
+					GroupName="WordLength"
+					IsChecked="True"
+					Content="Any Length"
+					Grid.Row="0"
+					Grid.Column="0"
+					Grid.ColumnSpan="2"	/>
+				<RadioButton
+					x:Name="RadioButtonExact"
+					GroupName="WordLength"
+					Content="Exact Length"
+					Grid.Row="1"
+					Grid.Column="0"
+					Grid.ColumnSpan="2"	/>
+				<RadioButton
+					x:Name="RadioButtonRange"
+					GroupName="WordLength"
+					Content="Ranged Length"
+					Grid.Row="2"
+					Grid.Column="0"
+					Grid.ColumnSpan="2" />
+				<Entry
+					x:Name="EntryExact"
+					IsTextPredictionEnabled="False"
+					IsSpellCheckEnabled="False"
+					Grid.Row="1"
+					Grid.Column="2"
+					Keyboard="Numeric" />
+				<Entry
+					x:Name="EntryMin"
+					IsTextPredictionEnabled="False"
+					IsSpellCheckEnabled="False"
+					Placeholder="min"
+					Grid.Row="2"
+					Grid.Column="2"
+					Keyboard="Numeric" />
+				<Entry
+					x:Name="EntryMax"
+					IsTextPredictionEnabled="False"
+					IsSpellCheckEnabled="False"
+					Placeholder="max"
+					Grid.Row="2"
+					Grid.Column="3"
+					Keyboard="Numeric" />
+			</Grid>
+		</VerticalStackLayout>
+	</ScrollView>
+</ContentPage>
