@@ -6,7 +6,7 @@
 	<Border
 		BindingContext="{x:Reference this}"
 		BackgroundColor="{Binding LetterBackground}"
-		Stroke="{Binding BorderStroke}"
+		Stroke="{Binding LetterBorderStroke}"
 		StrokeThickness="2"
 		VerticalOptions="CenterAndExpand"
 	>
@@ -14,6 +14,13 @@
 			<TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
 		</Border.GestureRecognizers>
 		<Label
-			Text="{Binding Letter}"/>
+			Text="{Binding Letter}"
+			HorizontalTextAlignment="Center"
+			VerticalTextAlignment="Center"
+			Padding="0"
+			HeightRequest="60"
+			HorizontalOptions="CenterAndExpand"
+			VerticalOptions="CenterAndExpand"
+			FontSize="40"/>
 	</Border>
 </ContentView>

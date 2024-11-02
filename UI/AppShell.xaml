@@ -8,18 +8,18 @@
 	Shell.FlyoutBehavior="Flyout"
 	Title="Word Finder">
 
-	<ShellContent
+	<!--<ShellContent
 		Title="Home"
 		ContentTemplate="{DataTemplate local:MainPage}"
 		Route="MainPage" />
 	<ShellContent
 		Title="Word Game"
 		ContentTemplate="{DataTemplate pages:WordGamePage}"
-		Route="WordGame" />
-	<ShellContent
+		Route="WordGame" />-->
+	<!--<ShellContent
 		Title="Solver"
 		ContentTemplate="{DataTemplate pages:SolverPage}"
-		Route="Solver" />
+		Route="Solver" />-->
 	<ShellContent
 		Title="Finder"
 		ContentTemplate="{DataTemplate pages:FinderPage}"
