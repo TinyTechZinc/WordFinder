@@ -6,7 +6,7 @@
 	xmlns:local="clr-namespace:UI"
 	xmlns:pages="clr-namespace:UI.Pages"
 	Shell.FlyoutBehavior="Flyout"
-	Title="UI">
+	Title="Word Finder">
 
 	<ShellContent
 		Title="Home"
@@ -14,8 +14,15 @@
 		Route="MainPage" />
 	<ShellContent
 		Title="Word Game"
-		ContentTemplate="{DataTemplate pages:WordGame}"
+		ContentTemplate="{DataTemplate pages:WordGamePage}"
 		Route="WordGame" />
-	
+	<ShellContent
+		Title="Solver"
+		ContentTemplate="{DataTemplate pages:SolverPage}"
+		Route="Solver" />
+	<ShellContent
+		Title="Finder"
+		ContentTemplate="{DataTemplate pages:FinderPage}"
+		Route="Finder" />
 
 </Shell>
