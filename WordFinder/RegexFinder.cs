@@ -23,7 +23,7 @@ namespace WordFinder
 		public enum CharacterRule
 		{
 			AtPosition,
-			NotAtPostion,
+			NotAtPosition,
 			ExactCount,
 			MinCount,
 			MaxCount,
@@ -39,7 +39,7 @@ namespace WordFinder
 		}
 
 		public string Characters { get; set; } = default!;
-		public List<CharRule> CharacterRules { get; set; } = new List<CharRule>();
+		public List<CharRule> CharacterRules { get; set; } = [];
 		public bool RestrictWordLength { get; set; }
 		public int WordLength { get; set; }
 		public int WordMaxLength { get; set; }
@@ -208,11 +208,11 @@ namespace WordFinder
 			{
 				regex += "+";
 			}
-			// Seperate using line end
+			// Separate using line end
 			regex += ")$";
 
 			// Create rules to handle other restrictions
-			List<CharRule> rules = new();
+			List<CharRule> rules = [];
 			if (RestrictCount == CountRestriction.ExactCount)
 			{
 				rules.AddRange(charactersWithCount.Select(r => ConvertToRule(r, CharacterRule.ExactCount)));
@@ -243,7 +243,7 @@ namespace WordFinder
 		}
 
 		/// <summary>
-		/// ToSearch should contain words seperated by newlines
+		/// ToSearch should contain words separated by newlines
 		/// </summary>
 		/// <param name="ToSearch"></param>
 		/// <returns></returns>
@@ -254,7 +254,7 @@ namespace WordFinder
 				regex,
 				RegexOptions.IgnoreCase | RegexOptions.Multiline
 			);
-			List<string> words = new();
+			List<string> words = [];
 			foreach (Match match in matches.Cast<Match>())
 			{
 				words.Add(match.Groups[0].Value);
@@ -294,7 +294,7 @@ namespace WordFinder
 				{
 					regexPosition += $"(?=.{{{rule.Number - 1}}}{rule.Character}.*)";
 				}
-				else if (rule.RuleType == CharacterRule.NotAtPostion)
+				else if (rule.RuleType == CharacterRule.NotAtPosition)
 				{
 					regexPosition += $"(?!.{{{rule.Number - 1}}}{rule.Character}.*)";
 				}
@@ -320,7 +320,7 @@ namespace WordFinder
 
 		static private List<CharNum> GetCharactersWithCount(string Characters)
 		{
-			List<CharNum> list = new();
+			List<CharNum> list = [];
 			foreach (char c in GetSafeString(Characters).ToCharArray())
 			{
 				int i = list.FindIndex(j => j.Character == c);

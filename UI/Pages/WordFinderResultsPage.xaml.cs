@@ -1,5 +1,3 @@
-
-
 namespace UI.Pages;
 
 public partial class WordFinderResultsPage : ContentPage, IQueryAttributable

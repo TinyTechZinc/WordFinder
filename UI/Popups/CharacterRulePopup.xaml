@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			   xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			   xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+			   x:Class="UI.Popups.CharacterRulePopup"
+			   x:Name="this"
+			   HorizontalOptions="Fill"
+			   VerticalOptions="Start" >
+	<VerticalStackLayout
+		HorizontalOptions="CenterAndExpand"
+		VerticalOptions="Start"
+		Padding="10" >
+		<Label
+			Text="Character"
+			FontSize="14"
+			FontAttributes="Bold" />
+		<Entry
+			x:Name="EntryLetter"
+			MaxLength="1"
+			IsTextPredictionEnabled="False"
+			IsSpellCheckEnabled="False"
+			BindingContext="{x:Reference this}"
+			Text="{Binding RuleCharacter}"
+			TextTransform="Lowercase"
+			Keyboard="Text" />
+		<Label
+			Text="Rule"
+			FontSize="14"
+			FontAttributes="Bold" />
+		<Picker
+			x:Name="PickerRule"
+			Title="Select Rule"
+			BindingContext="{x:Reference this}"
+			SelectedIndex="{Binding RuleTypeIndex}" >
+			<Picker.ItemsSource>
+				<x:Array Type="{x:Type x:String}">
+					<x:String>At Position</x:String>
+					<x:String>Not At Position</x:String>
+					<!--<x:String>Not In Word</x:String>-->
+					<x:String>Has Exact Count</x:String>
+					<x:String>Has Minimum Count</x:String>
+					<x:String>Has Maximum Count</x:String>
+				</x:Array>
+			</Picker.ItemsSource>
+		</Picker>
+		<Label
+			Text="Position|Count"
+			FontSize="14"
+			FontAttributes="Bold" />
+		<Entry
+			x:Name="EntryNumber"
+			IsTextPredictionEnabled="False"
+			IsSpellCheckEnabled="False"
+			Keyboard="Numeric"
+			BindingContext="{x:Reference this}"
+			Text="{Binding RuleNumber}"/>
+		<Button
+			x:Name="ButtonAddRule"
+			Text="Add Rule"
+			IsEnabled="False"
+			Clicked="ButtonAddRule_Clicked" />
+	</VerticalStackLayout>
+</toolkit:Popup>

@@ -14,6 +14,7 @@
 	<ScrollView>
 		<VerticalStackLayout
 			Padding="10" >
+			<!--Characters-->
 			<Label
 				Text="Characters"
 				VerticalOptions="Center"
@@ -68,6 +69,7 @@
 						IsChecked="True" />
 				</HorizontalStackLayout>
 			</Grid>
+			<!--Length-->
 			<Label
 				Text="Word Length"
 				VerticalOptions="Center"
@@ -135,6 +137,22 @@
 					Grid.Column="3"
 					Keyboard="Numeric" />
 			</Grid>
+			<!--Rules-->
+			<Label
+				Text="Additional Rules"
+				VerticalOptions="Center"
+				HorizontalOptions="Start"
+				FontAttributes="Bold"
+				FontSize="14" />
+			<Button
+				x:Name="ButtonAddRule"
+				Text="Add Rule"
+				Clicked="ButtonAddRule_Clicked"
+				HorizontalOptions="End" />
+			<VerticalStackLayout
+				x:Name="RuleList">
+				
+			</VerticalStackLayout>
 		</VerticalStackLayout>
 	</ScrollView>
 </ContentPage>
