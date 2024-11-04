@@ -3,8 +3,14 @@
 			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 			 x:Class="UI.Views.FinderRuleView"
 			 x:Name="this">
+	<ContentView.Resources>
+		<Style TargetType="Label">
+			<Setter Property="VerticalOptions" Value="Center"/>
+		</Style>
+	</ContentView.Resources>
 	<HorizontalStackLayout
-		Spacing="10">
+		Spacing="10"
+		VerticalOptions="Center">
 		<Label
 			BindingContext="{x:Reference this}"
 			Text="{Binding RuleCharacter}" />

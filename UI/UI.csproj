@@ -189,6 +189,9 @@
 	  <MauiXaml Update="Popups\CharacterRulePopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Resources\Styles\LabelStyles.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\FinderRuleView.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

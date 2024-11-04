@@ -19,8 +19,7 @@
 				Text="Characters"
 				VerticalOptions="Center"
 				HorizontalOptions="Start"
-				FontAttributes="Bold"
-				FontSize="14" />
+				Style="{StaticResource labelH3}" />
 			<Grid
 				ColumnSpacing="5" >
 				<Grid.RowDefinitions>
@@ -74,8 +73,7 @@
 				Text="Word Length"
 				VerticalOptions="Center"
 				HorizontalOptions="Start"
-				FontAttributes="Bold"
-				FontSize="14" />
+				Style="{StaticResource labelH3}" />
 			<Grid
 				RowSpacing="5"
 				ColumnSpacing="5"
@@ -142,8 +140,7 @@
 				Text="Additional Rules"
 				VerticalOptions="Center"
 				HorizontalOptions="Start"
-				FontAttributes="Bold"
-				FontSize="14" />
+				Style="{StaticResource labelH3}" />
 			<Button
 				x:Name="ButtonAddRule"
 				Text="Add Rule"

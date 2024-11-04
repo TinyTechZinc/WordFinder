@@ -11,9 +11,11 @@
 		VerticalOptions="Start"
 		Padding="10" >
 		<Label
+			Text="Additional Rule"
+			Style="{StaticResource labelH2}" />
+		<Label
 			Text="Character"
-			FontSize="14"
-			FontAttributes="Bold" />
+			Style="{StaticResource labelH3}" />
 		<Entry
 			x:Name="EntryLetter"
 			MaxLength="1"
@@ -25,8 +27,7 @@
 			Keyboard="Text" />
 		<Label
 			Text="Rule"
-			FontSize="14"
-			FontAttributes="Bold" />
+			Style="{StaticResource labelH3}" />
 		<Picker
 			x:Name="PickerRule"
 			Title="Select Rule"
@@ -45,8 +46,7 @@
 		</Picker>
 		<Label
 			Text="Position|Count"
-			FontSize="14"
-			FontAttributes="Bold" />
+			Style="{StaticResource labelH3}" />
 		<Entry
 			x:Name="EntryNumber"
 			IsTextPredictionEnabled="False"

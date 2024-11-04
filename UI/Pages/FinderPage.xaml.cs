@@ -80,7 +80,7 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 		}
 		// Read rules
 		Finder.CharacterRules.Clear();
-		foreach (FinderRuleView rule in RuleList)
+		foreach (FinderRuleView rule in RuleList.Cast<FinderRuleView>())
 		{
 			Finder.AddRule(rule.Rule.Character, rule.Rule.Number, rule.Rule.RuleType);
 		}
