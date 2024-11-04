@@ -1,9 +1,11 @@
+using CommunityToolkit.Maui.Views;
 using System.Text.RegularExpressions;
+using UI.Views;
 using WordFinder;
 
 namespace UI.Pages;
 
-public partial class FinderPage : ContentPage
+public partial class FinderPage : ContentPage, IQueryAttributable
 {
 	readonly RegexFinder Finder;
 	public FinderPage()
@@ -11,6 +13,19 @@ public partial class FinderPage : ContentPage
 		InitializeComponent();
 		Finder = new();
 	}
+	/// <summary>
+	/// Allows additional rules to be added.
+	/// </summary>
+	/// <param name="query"></param>
+	public void ApplyQueryAttributes(IDictionary<string, object> query)
+	{
+		if (query.TryGetValue("NewRule", out var rule))
+		{
+			// to do
+			if (rule != null) { }
+		}
+	}
+
 	private void ButtonSearch_Clicked(object sender, EventArgs e)
 	{
 		DoSearch();
@@ -23,7 +38,7 @@ public partial class FinderPage : ContentPage
 			await DisplayAlert("Invalid", "Invalid characters in characters field.", "OK");
 			return;
 		}
-		//if (!CheckBoxOnlyThese.IsChecked && !CheckBoxMustInclude.IsChecked && PickerCount.SelectedIndex == (int)WordRegex.CountRestriction.None && characters.Length > 0)
+		//if (!CheckBoxOnlyThese.IsChecked && !CheckBoxIncludeAll.IsChecked && PickerCount.SelectedIndex == (int)WordRegex.CountRestriction.None && characters.Length > 0)
 		//{
 		//	if (!await DisplayAlert("Warning", "'Only These' and 'Include All' are unchecked and 'Restrict Count' is set to None. This will result in the Characters field being ignored.", "Continue", "Cancel"))
 		//	{
@@ -62,6 +77,12 @@ public partial class FinderPage : ContentPage
 				await DisplayAlert("Invalid Length", "Invalid length provided.", "OK");
 				return;
 			}
+		}
+		// Read rules
+		Finder.CharacterRules.Clear();
+		foreach (FinderRuleView rule in RuleList.Cast<FinderRuleView>())
+		{
+			Finder.AddRule(rule.Rule.Character, rule.Rule.Number, rule.Rule.RuleType);
 		}
 
 		// More to be added here
@@ -107,5 +128,34 @@ public partial class FinderPage : ContentPage
 			{ "Words", foundWords },
 		};
 		await Shell.Current.GoToAsync("WordFinderResultsPage", param);
+	}
+
+	private async void ButtonAddRule_Clicked(object sender, EventArgs e)
+	{
+		var rulePopup = new Popups.CharacterRulePopup();
+		var result = await this.ShowPopupAsync(rulePopup);
+		if (result != null && result is RegexFinder.CharRule rule)
+		{
+			RuleList.Add(new FinderRuleView(rule, Rule_EditClicked!, Rule_RemoveClicked!));
+		}
+	}
+	private async void Rule_EditClicked(object sender, EventArgs e)
+	{
+		if (sender is FinderRuleView ruleView)
+		{
+			var rulePopup = new Popups.CharacterRulePopup(ruleView.Rule);
+			var result = await this.ShowPopupAsync(rulePopup);
+			if (result != null && result is RegexFinder.CharRule newRule)
+			{
+				ruleView.Rule = newRule;
+			}
+		}
+	}
+	private void Rule_RemoveClicked(object sender, EventArgs e)
+	{
+		if (sender is FinderRuleView rule)
+		{
+			RuleList.Remove(rule);
+		}
 	}
 }
