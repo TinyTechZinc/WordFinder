@@ -2,33 +2,45 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
 			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 			 x:Class="UI.Views.FinderRuleView"
-			 x:Name="this">
+			 x:Name="this" >
 	<ContentView.Resources>
 		<Style TargetType="Label">
 			<Setter Property="VerticalOptions" Value="Center"/>
 		</Style>
 	</ContentView.Resources>
-	<HorizontalStackLayout
-		Spacing="10"
-		VerticalOptions="Center">
+	<Grid
+		ColumnSpacing="5" >
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="20" />
+			<ColumnDefinition/>
+			<ColumnDefinition/>
+			<ColumnDefinition Width="Auto" />
+			<ColumnDefinition Width="Auto" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition/>
+		</Grid.RowDefinitions>
 		<Label
 			BindingContext="{x:Reference this}"
-			Text="{Binding RuleCharacter}" />
+			Text="{Binding RuleCharacter}"
+			Grid.Column="0" />
 		<Label
 			BindingContext="{x:Reference this}"
-			Text="{Binding RuleName}" />
+			Text="{Binding RuleName}"
+			Grid.Column="1" />
 		<Label
 			BindingContext="{x:Reference this}"
-			Text="{Binding RuleNumber}" />
+			Text="{Binding RuleNumber}"
+			Grid.Column="2" />
 		<Button
 			x:Name="ButtonRemove"
 			Text="-"
 			Clicked="ButtonRemove_Clicked"
-			HorizontalOptions="End" />
+			Grid.Column="3" />
 		<Button
 			x:Name="ButtonEdit"
 			Text="Edit"
 			Clicked="ButtonEdit_Clicked"
-			HorizontalOptions="End" />
-	</HorizontalStackLayout>
+			Grid.Column="4" />
+	</Grid>
 </ContentView>

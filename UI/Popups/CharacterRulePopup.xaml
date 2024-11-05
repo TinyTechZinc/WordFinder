@@ -18,13 +18,10 @@
 			Style="{StaticResource labelH3}" />
 		<Entry
 			x:Name="EntryLetter"
+			Style="{StaticResource ValidCharacters}"
 			MaxLength="1"
-			IsTextPredictionEnabled="False"
-			IsSpellCheckEnabled="False"
 			BindingContext="{x:Reference this}"
-			Text="{Binding RuleCharacter}"
-			TextTransform="Lowercase"
-			Keyboard="Text" />
+			Text="{Binding RuleCharacter}" />
 		<Label
 			Text="Rule"
 			Style="{StaticResource labelH3}" />
@@ -49,9 +46,7 @@
 			Style="{StaticResource labelH3}" />
 		<Entry
 			x:Name="EntryNumber"
-			IsTextPredictionEnabled="False"
-			IsSpellCheckEnabled="False"
-			Keyboard="Numeric"
+			Style="{StaticResource ValidNumbers}"
 			BindingContext="{x:Reference this}"
 			Text="{Binding RuleNumber}"/>
 		<Button

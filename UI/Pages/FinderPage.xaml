@@ -3,14 +3,6 @@
 			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 			 x:Class="UI.Pages.FinderPage"
 			 Title="Finder">
-	<ContentPage.Resources>
-		<Style x:Key="Invalid" TargetType="Entry">
-			<Setter Property="BackgroundColor" Value="Red" />
-		</Style>
-		<Style x:Key="Valid" TargetType="Entry">
-			<Setter Property="BackgroundColor" Value="WhiteSmoke" />
-		</Style>
-	</ContentPage.Resources>
 	<ScrollView>
 		<VerticalStackLayout
 			Padding="10" >
@@ -33,14 +25,10 @@
 				</Grid.ColumnDefinitions>
 				<Entry
 					x:Name="EntryCharacters"
-					ClearButtonVisibility="WhileEditing"
-					IsTextPredictionEnabled="False"
-					IsSpellCheckEnabled="False"
-					TextTransform="Lowercase"
+					Style="{StaticResource ValidCharacters}"
 					Grid.Row="0"
 					Grid.Column="0"
-					Grid.ColumnSpan="2"
-					Keyboard="Text" />
+					Grid.ColumnSpan="2" />
 				<Button
 					x:Name="ButtonSearch"
 					Text="Search"
@@ -113,28 +101,31 @@
 					Grid.ColumnSpan="2" />
 				<Entry
 					x:Name="EntryExact"
-					IsTextPredictionEnabled="False"
-					IsSpellCheckEnabled="False"
+					Style="{StaticResource ValidNumbers}"
 					Grid.Row="1"
-					Grid.Column="2"
-					Keyboard="Numeric" />
+					Grid.Column="2" />
 				<Entry
 					x:Name="EntryMin"
-					IsTextPredictionEnabled="False"
-					IsSpellCheckEnabled="False"
+					Style="{StaticResource ValidNumbers}"
 					Placeholder="min"
 					Grid.Row="2"
-					Grid.Column="2"
-					Keyboard="Numeric" />
+					Grid.Column="2" />
 				<Entry
 					x:Name="EntryMax"
-					IsTextPredictionEnabled="False"
-					IsSpellCheckEnabled="False"
+					Style="{StaticResource ValidNumbers}"
 					Placeholder="max"
 					Grid.Row="2"
-					Grid.Column="3"
-					Keyboard="Numeric" />
+					Grid.Column="3" />
 			</Grid>
+			<!--Exclude Character-->
+			<Label
+				Text="Exclude Characters"
+				VerticalOptions="Center"
+				HorizontalOptions="Start"
+				Style="{StaticResource labelH3}" />
+			<Entry
+				x:Name="EntryExcludeCharacters"
+				Style="{StaticResource ValidCharacters}" />
 			<!--Rules-->
 			<Label
 				Text="Additional Rules"
@@ -147,7 +138,9 @@
 				Clicked="ButtonAddRule_Clicked"
 				HorizontalOptions="End" />
 			<VerticalStackLayout
-				x:Name="RuleList">
+				x:Name="RuleList"
+				Padding="5"
+				Spacing="5" >
 				
 			</VerticalStackLayout>
 		</VerticalStackLayout>
