@@ -23,10 +23,12 @@
 		<Button
 			x:Name="ButtonRemove"
 			Text="-"
-			Clicked="ButtonRemove_Clicked" />
+			Clicked="ButtonRemove_Clicked"
+			HorizontalOptions="End" />
 		<Button
 			x:Name="ButtonEdit"
 			Text="Edit"
-			Clicked="ButtonEdit_Clicked" />
+			Clicked="ButtonEdit_Clicked"
+			HorizontalOptions="End" />
 	</HorizontalStackLayout>
 </ContentView>
