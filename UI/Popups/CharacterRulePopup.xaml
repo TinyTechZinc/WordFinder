@@ -18,13 +18,18 @@
 			Style="{StaticResource labelH3}" />
 		<Entry
 			x:Name="EntryLetter"
+			Style="{StaticResource ValidCharacters}"
 			MaxLength="1"
-			IsTextPredictionEnabled="False"
-			IsSpellCheckEnabled="False"
 			BindingContext="{x:Reference this}"
-			Text="{Binding RuleCharacter}"
-			TextTransform="Lowercase"
-			Keyboard="Text" />
+			Text="{Binding RuleCharacter}" >
+			<Entry.Behaviors>
+				<toolkit:TextValidationBehavior
+					InvalidStyle="{StaticResource InvalidCharacters}"
+					ValidStyle="{StaticResource ValidCharacters}"
+					Flags="ValidateOnValueChanged"
+					RegexPattern="^[a-z0-9]*$" />
+			</Entry.Behaviors>
+		</Entry>
 		<Label
 			Text="Rule"
 			Style="{StaticResource labelH3}" />
@@ -49,11 +54,18 @@
 			Style="{StaticResource labelH3}" />
 		<Entry
 			x:Name="EntryNumber"
-			IsTextPredictionEnabled="False"
-			IsSpellCheckEnabled="False"
-			Keyboard="Numeric"
+			Style="{StaticResource ValidNumbers}"
 			BindingContext="{x:Reference this}"
-			Text="{Binding RuleNumber}"/>
+			Text="{Binding RuleNumber}">
+			<Entry.Behaviors>
+				<toolkit:NumericValidationBehavior
+					InvalidStyle="{StaticResource InvalidNumbers}"
+					ValidStyle="{StaticResource ValidNumbers}"
+					Flags="ValidateOnValueChanged"
+					MinimumValue="1"
+					MaximumDecimalPlaces="0" />
+			</Entry.Behaviors>
+		</Entry>
 		<Button
 			x:Name="ButtonAddRule"
 			Text="Add Rule"

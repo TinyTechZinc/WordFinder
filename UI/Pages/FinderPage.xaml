@@ -1,16 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
 			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
 			 x:Class="UI.Pages.FinderPage"
 			 Title="Finder">
-	<ContentPage.Resources>
-		<Style x:Key="Invalid" TargetType="Entry">
-			<Setter Property="BackgroundColor" Value="Red" />
-		</Style>
-		<Style x:Key="Valid" TargetType="Entry">
-			<Setter Property="BackgroundColor" Value="WhiteSmoke" />
-		</Style>
-	</ContentPage.Resources>
 	<ScrollView>
 		<VerticalStackLayout
 			Padding="10" >
@@ -33,14 +26,18 @@
 				</Grid.ColumnDefinitions>
 				<Entry
 					x:Name="EntryCharacters"
-					ClearButtonVisibility="WhileEditing"
-					IsTextPredictionEnabled="False"
-					IsSpellCheckEnabled="False"
-					TextTransform="Lowercase"
+					Style="{StaticResource ValidCharacters}"
 					Grid.Row="0"
 					Grid.Column="0"
-					Grid.ColumnSpan="2"
-					Keyboard="Text" />
+					Grid.ColumnSpan="2" >
+					<Entry.Behaviors>
+						<toolkit:TextValidationBehavior
+							InvalidStyle="{StaticResource InvalidCharacters}"
+							ValidStyle="{StaticResource ValidCharacters}"
+							Flags="ValidateOnValueChanged"
+							RegexPattern="^[a-z0-9]*$" />
+					</Entry.Behaviors>
+				</Entry>
 				<Button
 					x:Name="ButtonSearch"
 					Text="Search"
@@ -113,28 +110,69 @@
 					Grid.ColumnSpan="2" />
 				<Entry
 					x:Name="EntryExact"
-					IsTextPredictionEnabled="False"
-					IsSpellCheckEnabled="False"
+					Style="{StaticResource ValidNumbers}"
 					Grid.Row="1"
-					Grid.Column="2"
-					Keyboard="Numeric" />
+					Grid.Column="2" >
+					<Entry.Behaviors>
+						<toolkit:NumericValidationBehavior
+							InvalidStyle="{StaticResource InvalidNumbers}"
+							ValidStyle="{StaticResource ValidNumbers}"
+							Flags="ValidateOnValueChanged"
+							MinimumValue="1"
+							MaximumDecimalPlaces="0" />
+					</Entry.Behaviors>
+				</Entry>
 				<Entry
 					x:Name="EntryMin"
-					IsTextPredictionEnabled="False"
-					IsSpellCheckEnabled="False"
+					Style="{StaticResource ValidNumbers}"
 					Placeholder="min"
 					Grid.Row="2"
-					Grid.Column="2"
-					Keyboard="Numeric" />
+					Grid.Column="2" >
+					<Entry.Behaviors>
+						<toolkit:NumericValidationBehavior
+							InvalidStyle="{StaticResource InvalidNumbers}"
+							ValidStyle="{StaticResource ValidNumbers}"
+							Flags="ValidateOnValueChanged"
+							MinimumValue="1"
+							MaximumDecimalPlaces="0"
+							BindingContext="{x:Reference Name=EntryMax}"
+							MaximumValue="{Binding Path=Text}"/>
+					</Entry.Behaviors>
+				</Entry>
 				<Entry
 					x:Name="EntryMax"
-					IsTextPredictionEnabled="False"
-					IsSpellCheckEnabled="False"
+					Style="{StaticResource ValidNumbers}"
 					Placeholder="max"
 					Grid.Row="2"
-					Grid.Column="3"
-					Keyboard="Numeric" />
+					Grid.Column="3" >
+					<Entry.Behaviors>
+						<toolkit:NumericValidationBehavior
+							InvalidStyle="{StaticResource InvalidNumbers}"
+							ValidStyle="{StaticResource ValidNumbers}"
+							Flags="ValidateOnValueChanged"
+							BindingContext="{x:Reference Name=EntryMin}"
+							MinimumValue="{Binding Path=Text}"
+							MaximumDecimalPlaces="0" />
+					</Entry.Behaviors>
+				</Entry>
 			</Grid>
+			<!--Exclude Character-->
+			<Label
+				Text="Exclude Characters"
+				VerticalOptions="Center"
+				HorizontalOptions="Start"
+				Style="{StaticResource labelH3}" />
+			<Entry
+				x:Name="EntryExcludeCharacters"
+				Style="{StaticResource ValidCharacters}" >
+				<Entry.Behaviors>
+					<toolkit:TextValidationBehavior
+						InvalidStyle="{StaticResource InvalidCharacters}"
+						ValidStyle="{StaticResource ValidCharacters}"
+						Flags="ValidateOnValueChanged"
+						RegexPattern="^[a-z0-9]*$" />
+				</Entry.Behaviors>
+			</Entry>
 			<!--Rules-->
 			<Label
 				Text="Additional Rules"
@@ -147,7 +185,9 @@
 				Clicked="ButtonAddRule_Clicked"
 				HorizontalOptions="End" />
 			<VerticalStackLayout
-				x:Name="RuleList">
+				x:Name="RuleList"
+				Padding="5"
+				Spacing="5" >
 				
 			</VerticalStackLayout>
 		</VerticalStackLayout>
