@@ -62,11 +62,42 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 				Finder.IsLengthRange = false;
 				Finder.WordLength = exact;
 			}
-			else if (RadioButtonRange.IsChecked && Int32.TryParse(EntryMin.Text, out int min) && Int32.TryParse(EntryMax.Text, out int max))
+			else if (RadioButtonRange.IsChecked)
 			{
 				Finder.IsLengthRange = true;
-				Finder.WordMinLength = min;
-				Finder.WordMaxLength = max;
+				var minStr = EntryMin.Text ?? "";
+				var maxStr = EntryMax.Text ?? "";
+				if (Int32.TryParse(minStr, out int min) && min > 0)
+				{
+					Finder.WordMinLength = min;
+				}
+				else if (minStr.Length == 0)
+				{
+					Finder.WordMinLength = null;
+				}
+				else
+				{
+					await DisplayAlert("Invalid Length", "Invalid length provided.", "OK");
+					return;
+				}
+				if (Int32.TryParse(maxStr, out int max) && max > 0)
+				{
+					Finder.WordMaxLength = max;
+				}
+				else if (maxStr.Length == 0)
+				{
+					Finder.WordMaxLength = null;
+				}
+				else
+				{
+					await DisplayAlert("Invalid Length", "Invalid length provided.", "OK");
+					return;
+				}
+				if (Finder.WordMinLength != null && Finder.WordMaxLength != null && Finder.WordMinLength > Finder.WordMaxLength)
+				{
+					await DisplayAlert("Invalid Length", "Minimum length is greater than maximum length.", "OK");
+					return;
+				}
 			}
 			else
 			{

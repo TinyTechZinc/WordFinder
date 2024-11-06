@@ -107,12 +107,11 @@
 					Grid.Row="1"
 					Grid.Column="2" >
 					<Entry.Behaviors>
-						<toolkit:NumericValidationBehavior
+						<toolkit:TextValidationBehavior
 							InvalidStyle="{StaticResource InvalidNumbers}"
 							ValidStyle="{StaticResource ValidNumbers}"
 							Flags="ValidateOnValueChanged"
-							MinimumValue="1"
-							MaximumDecimalPlaces="0" />
+							RegexPattern="^[0-9]*$" />
 					</Entry.Behaviors>
 				</Entry>
 				<Entry
@@ -122,14 +121,11 @@
 					Grid.Row="2"
 					Grid.Column="2" >
 					<Entry.Behaviors>
-						<toolkit:NumericValidationBehavior
+						<toolkit:TextValidationBehavior
 							InvalidStyle="{StaticResource InvalidNumbers}"
 							ValidStyle="{StaticResource ValidNumbers}"
 							Flags="ValidateOnValueChanged"
-							MinimumValue="1"
-							MaximumDecimalPlaces="0"
-							BindingContext="{x:Reference Name=EntryMax}"
-							MaximumValue="{Binding Path=Text}"/>
+							RegexPattern="^[0-9]*$" />
 					</Entry.Behaviors>
 				</Entry>
 				<Entry
@@ -139,13 +135,11 @@
 					Grid.Row="2"
 					Grid.Column="3" >
 					<Entry.Behaviors>
-						<toolkit:NumericValidationBehavior
+						<toolkit:TextValidationBehavior
 							InvalidStyle="{StaticResource InvalidNumbers}"
 							ValidStyle="{StaticResource ValidNumbers}"
 							Flags="ValidateOnValueChanged"
-							BindingContext="{x:Reference Name=EntryMin}"
-							MinimumValue="{Binding Path=Text}"
-							MaximumDecimalPlaces="0" />
+							RegexPattern="^[0-9]*$" />
 					</Entry.Behaviors>
 				</Entry>
 			</Grid>
