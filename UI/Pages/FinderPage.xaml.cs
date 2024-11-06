@@ -33,11 +33,6 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 	private async void DoSearch()
 	{
 		string characters = EntryCharacters.Text ?? "";
-		if (characters != RegexFinder.GetSafeString(characters))
-		{
-			await DisplayAlert("Invalid", "Invalid characters in characters field.", "OK");
-			return;
-		}
 		//if (!CheckBoxOnlyThese.IsChecked && !CheckBoxIncludeAll.IsChecked && PickerCount.SelectedIndex == (int)WordRegex.CountRestriction.None && characters.Length > 0)
 		//{
 		//	if (!await DisplayAlert("Warning", "'Only These' and 'Include All' are unchecked and 'Restrict Count' is set to None. This will result in the Characters field being ignored.", "Continue", "Cancel"))

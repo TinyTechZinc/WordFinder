@@ -348,13 +348,6 @@ namespace WordFinder
 			}
 			return list;
 		}
-		[Obsolete]
-		static public string GetSafeString(string str)
-		{
-			if (str == null) { return ""; }
-			// Replace all characters that are not alphanumeric and not empty
-			return Regex.Replace(str.ToLower(), "[^a-zA-Z0-9]", "");
-		}
 		static public string EscapeCharacters(string str)
 		{
 			string toReturn = "";

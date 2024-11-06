@@ -64,7 +64,7 @@ public partial class CharacterRulePopup : Popup
 	private static bool TryCreateRule(string character, int ruleIndex, string number, out RegexFinder.CharRule? rule)
 	{
 		rule = null;
-		if (character.Length != 1 || character != RegexFinder.GetSafeString(character))
+		if (character.Length != 1)
 		{
 			return false;
 		}
