@@ -42,8 +42,8 @@ namespace WordFinder
 		public List<CharRule> CharacterRules { get; set; } = [];
 		public bool RestrictWordLength { get; set; }
 		public int WordLength { get; set; }
-		public int WordMaxLength { get; set; }
-		public int WordMinLength { get; set; }
+		public int? WordMaxLength { get; set; }
+		public int? WordMinLength { get; set; }
 		public bool IsLengthRange { get; set; }
 		public CountRestriction RestrictCount { get; set; }
 		public bool IncludeAll { get; set; }
@@ -196,7 +196,19 @@ namespace WordFinder
 				if (IsLengthRange)
 				{
 					// Range length
+					if (WordMinLength != null)
+					{
 					regex += $"{{{WordMinLength},{WordMaxLength}}}";
+				}
+					else if (WordMaxLength != null)
+					{
+						regex += $"{{0,{WordMaxLength}}}";
+					}
+				else
+				{
+						// Any Length
+						regex += "+";
+					}
 				}
 				else
 				{
