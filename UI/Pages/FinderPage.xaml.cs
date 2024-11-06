@@ -48,6 +48,7 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 		Finder.IncludeAll = CheckBoxIncludeAll.IsChecked;
 		Finder.OnlyThese = CheckBoxOnlyThese.IsChecked;
 		Finder.Characters = characters;
+		Finder.ExcludeCharacters = EntryExcludeCharacters.Text ?? "";
 
 		if (RadioButtonAny.IsChecked)
 		{
@@ -96,12 +97,12 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 		}
 		catch
 		{
-			await DisplayAlert("Invalid Regex", "Internal regular expression match failed.\nDouble check search criteria.", "OK");
+			await DisplayAlert("Error", $"Something went wrong. Regex: \"{regex}\"", "OK");
 			return;
 		}
 		if (foundWords.Count == 0)
 		{
-			await DisplayAlert("No Words Found", "No words found matching the criteria.", "OK");
+			await DisplayAlert("No Words Found", "No words match the criteria.", "OK");
 			return;
 		}
 		if (foundWords.Count > 10000)
