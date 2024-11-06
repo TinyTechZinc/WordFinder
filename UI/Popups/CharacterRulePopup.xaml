@@ -22,13 +22,6 @@
 			MaxLength="1"
 			BindingContext="{x:Reference this}"
 			Text="{Binding RuleCharacter}" >
-			<Entry.Behaviors>
-				<toolkit:TextValidationBehavior
-					InvalidStyle="{StaticResource InvalidCharacters}"
-					ValidStyle="{StaticResource ValidCharacters}"
-					Flags="ValidateOnValueChanged"
-					RegexPattern="^[a-z0-9]*$" />
-			</Entry.Behaviors>
 		</Entry>
 		<Label
 			Text="Rule"

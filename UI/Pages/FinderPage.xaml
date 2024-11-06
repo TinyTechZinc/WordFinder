@@ -30,13 +30,6 @@
 					Grid.Row="0"
 					Grid.Column="0"
 					Grid.ColumnSpan="2" >
-					<Entry.Behaviors>
-						<toolkit:TextValidationBehavior
-							InvalidStyle="{StaticResource InvalidCharacters}"
-							ValidStyle="{StaticResource ValidCharacters}"
-							Flags="ValidateOnValueChanged"
-							RegexPattern="^[a-z0-9]*$" />
-					</Entry.Behaviors>
 				</Entry>
 				<Button
 					x:Name="ButtonSearch"
@@ -165,13 +158,6 @@
 			<Entry
 				x:Name="EntryExcludeCharacters"
 				Style="{StaticResource ValidCharacters}" >
-				<Entry.Behaviors>
-					<toolkit:TextValidationBehavior
-						InvalidStyle="{StaticResource InvalidCharacters}"
-						ValidStyle="{StaticResource ValidCharacters}"
-						Flags="ValidateOnValueChanged"
-						RegexPattern="^[a-z0-9]*$" />
-				</Entry.Behaviors>
 			</Entry>
 			<!--Rules-->
 			<Label
