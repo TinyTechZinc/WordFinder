@@ -8,6 +8,15 @@ namespace WordFinder
 		{
 			public char Character { get; set; }
 			public int Number { get; set; }
+			public CharRule ConvertToRule(CharacterRule Rule)
+			{
+				return new CharRule
+				{
+					Character = Character,
+					Number = Number,
+					RuleType = Rule
+				};
+			}
 		}
 
 		public class CharRule : CharNum
@@ -17,6 +26,33 @@ namespace WordFinder
 			public override string ToString()
 			{
 				return $"{Character}|{Number}|{RuleType}";
+			}
+			public string ConvertToRegex()
+			{
+				if (RuleType == CharacterRule.AtPosition)
+				{
+					return $"(?=.{{{Number - 1}}}[{EscapeCharacters(Character)}].*)";
+				}
+				else if (RuleType == CharacterRule.NotAtPosition)
+				{
+					return $"(?!.{{{Number - 1}}}[{EscapeCharacters(Character)}].*)";
+				}
+				else if (RuleType == CharacterRule.ExactCount)
+				{
+					return $"(?=(.*[{EscapeCharacters(Character)}].*){{{Number}}})";
+				}
+				else if (RuleType == CharacterRule.MinCount)
+				{
+					return $"(?=(.*[{EscapeCharacters(Character)}].*){{{Number},}})";
+				}
+				else if (RuleType == CharacterRule.MaxCount)
+				{
+					return $"(?!(.*[{EscapeCharacters(Character)}].*){{{Number + 1},}})";
+				}
+				else
+				{
+					return "";
+				}
 			}
 		}
 
@@ -225,15 +261,15 @@ namespace WordFinder
 			List<CharRule> rules = [];
 			if ((RestrictCount & CountRestriction.ExactCount) == CountRestriction.ExactCount)
 			{
-				rules.AddRange(charactersWithCount.Select(r => ConvertToRule(r, CharacterRule.ExactCount)));
+				rules.AddRange(charactersWithCount.Select(r => r.ConvertToRule(CharacterRule.ExactCount)));
 			}
 			else if ((RestrictCount & CountRestriction.MinCount) == CountRestriction.MinCount)
 			{
-				rules.AddRange(charactersWithCount.Select(r => ConvertToRule(r, CharacterRule.MinCount)));
+				rules.AddRange(charactersWithCount.Select(r => r.ConvertToRule(CharacterRule.MinCount)));
 			}
 			else if ((RestrictCount & CountRestriction.MaxCount) == CountRestriction.MaxCount)
 			{
-				rules.AddRange(charactersWithCount.Select(r => ConvertToRule(r, CharacterRule.MaxCount)));
+				rules.AddRange(charactersWithCount.Select(r => r.ConvertToRule(CharacterRule.MaxCount)));
 			}
 			// RestrictExactCount and RestrictMinCount already cause the characters to be required.
 			if (IncludeAll && 
@@ -251,7 +287,12 @@ namespace WordFinder
 				));
 			}
 			// Build final regex string
-			return $"{GetRegexFromRules(CharacterRules.Concat(rules))}{(ExcludeCharacters.Length > 0 ? $"(?!.*[{EscapeCharacters(ExcludeCharacters)}].*)" : "")}{regex}";
+			string ruleRegex = "";
+			foreach (CharRule rule in CharacterRules.Concat(rules))
+			{
+				ruleRegex += rule.ConvertToRegex();
+			}
+			return $"{ruleRegex}{(ExcludeCharacters.Length > 0 ? $"(?!.*[{EscapeCharacters(ExcludeCharacters)}].*)" : "")}{regex}";
 		}
 
 		/// <summary>
@@ -282,47 +323,6 @@ namespace WordFinder
 		public List<string> FindWordsFromFile(string FilePath)
 		{
 			return FindWords(File.ReadAllText(FilePath).ReplaceLineEndings("\n"));
-		}
-
-		private static CharRule ConvertToRule(CharNum CharacterWithNumber, CharacterRule Rule)
-		{
-			return new CharRule
-			{
-				Character = CharacterWithNumber.Character,
-				Number = CharacterWithNumber.Number,
-				RuleType = Rule
-			};
-		}
-
-		private static string GetRegexFromRules(IEnumerable<CharRule> rules)
-		{
-			string regexPosition = "";
-			string regexCount = "";
-
-			foreach (CharRule rule in rules)
-			{
-				if (rule.RuleType == CharacterRule.AtPosition)
-				{
-					regexPosition += $"(?=.{{{rule.Number - 1}}}[{EscapeCharacters(rule.Character)}].*)";
-				}
-				else if (rule.RuleType == CharacterRule.NotAtPosition)
-				{
-					regexPosition += $"(?!.{{{rule.Number - 1}}}[{EscapeCharacters(rule.Character)}].*)";
-				}
-				else if (rule.RuleType == CharacterRule.ExactCount)
-				{
-					regexCount += $"(?=(.*[{EscapeCharacters(rule.Character)}].*){{{rule.Number}}})";
-				}
-				else if (rule.RuleType == CharacterRule.MinCount)
-				{
-					regexCount += $"(?=(.*[{EscapeCharacters(rule.Character)}].*){{{rule.Number},}})";
-				}
-				else if (rule.RuleType == CharacterRule.MaxCount)
-				{
-					regexCount += $"(?!(.*[{EscapeCharacters(rule.Character)}].*){{{rule.Number + 1},}})";
-				}
-			}
-			return $"{regexPosition}{regexCount}";
 		}
 
 		static private List<CharNum> GetCharactersWithCount(string Characters)

@@ -42,7 +42,6 @@ public partial class CharacterRulePopup : Popup
 	[
 		RegexFinder.CharacterRule.AtPosition,
 		RegexFinder.CharacterRule.NotAtPosition,
-		//RegexFinder.CharacterRule.Exclude,
 		RegexFinder.CharacterRule.ExactCount,
 		RegexFinder.CharacterRule.MinCount,
 		RegexFinder.CharacterRule.MaxCount

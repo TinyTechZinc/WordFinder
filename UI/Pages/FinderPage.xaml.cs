@@ -84,20 +84,15 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 
 		string regex = Finder.GetRegex();
 
-		await DisplayAlert(Title, regex, "OK");
-
-		using var fileStream = await FileSystem.OpenAppPackageFileAsync("words.txt");
-		using var streamReader = new StreamReader(fileStream);
-		string content = await streamReader.ReadToEndAsync();
+		await DisplayAlert("Regex (for debugging)", regex, "OK");
 
 		List<string> foundWords = [];
 		try
 		{
-			foundWords = await Task.Run(() =>
+			foundWords = (await Task.Run(async () =>
 			{
-				string textLines = Regex.Replace(content, "(\r\n|\r|\n)", "\n");
-				return RegexFinder.FindWords(textLines, regex);
-			});
+				return RegexFinder.FindWords(await Globals.GetAllWords(), regex).AsEnumerable();
+			})).ToList();
 		}
 		catch
 		{
