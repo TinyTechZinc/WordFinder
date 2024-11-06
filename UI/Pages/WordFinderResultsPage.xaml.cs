@@ -2,7 +2,7 @@ namespace UI.Pages;
 
 public partial class WordFinderResultsPage : ContentPage, IQueryAttributable
 {
-	private string WordsString = default!;
+	private string WordsString = "";
 	public WordFinderResultsPage()
 	{
 		InitializeComponent();
@@ -12,8 +12,13 @@ public partial class WordFinderResultsPage : ContentPage, IQueryAttributable
 	{
 		await Task.Run(() =>
 		{
-			var temp = query["Words"] as List<string>;
-			WordsString = string.Join("\n", temp);
+			if (query.TryGetValue("Words", out var temp)) {
+				if (temp is List<string> words)
+				{
+					WordsString = string.Join("\n", words);
+					this.Title = $"Words Found: {words.Count}";
+				}
+			}
 		});
 		Editor editor = new()
 		{
@@ -28,6 +33,6 @@ public partial class WordFinderResultsPage : ContentPage, IQueryAttributable
 	}
 	private void Editor_TextChanged(object? sender, TextChangedEventArgs e)
 	{
-		((Editor)sender).Text = WordsString;
+		((Editor)sender!).Text = WordsString;
 	}
 }

@@ -33,11 +33,6 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 	private async void DoSearch()
 	{
 		string characters = EntryCharacters.Text ?? "";
-		if (characters != RegexFinder.GetSafeString(characters))
-		{
-			await DisplayAlert("Invalid", "Invalid characters in characters field.", "OK");
-			return;
-		}
 		//if (!CheckBoxOnlyThese.IsChecked && !CheckBoxIncludeAll.IsChecked && PickerCount.SelectedIndex == (int)WordRegex.CountRestriction.None && characters.Length > 0)
 		//{
 		//	if (!await DisplayAlert("Warning", "'Only These' and 'Include All' are unchecked and 'Restrict Count' is set to None. This will result in the Characters field being ignored.", "Continue", "Cancel"))
@@ -53,6 +48,7 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 		Finder.IncludeAll = CheckBoxIncludeAll.IsChecked;
 		Finder.OnlyThese = CheckBoxOnlyThese.IsChecked;
 		Finder.Characters = characters;
+		Finder.ExcludeCharacters = EntryExcludeCharacters.Text ?? "";
 
 		if (RadioButtonAny.IsChecked)
 		{
@@ -66,11 +62,42 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 				Finder.IsLengthRange = false;
 				Finder.WordLength = exact;
 			}
-			else if (RadioButtonRange.IsChecked && Int32.TryParse(EntryMin.Text, out int min) && Int32.TryParse(EntryMax.Text, out int max))
+			else if (RadioButtonRange.IsChecked)
 			{
 				Finder.IsLengthRange = true;
-				Finder.WordMinLength = min;
-				Finder.WordMaxLength = max;
+				var minStr = EntryMin.Text ?? "";
+				var maxStr = EntryMax.Text ?? "";
+				if (Int32.TryParse(minStr, out int min) && min > 0)
+				{
+					Finder.WordMinLength = min;
+				}
+				else if (minStr.Length == 0)
+				{
+					Finder.WordMinLength = null;
+				}
+				else
+				{
+					await DisplayAlert("Invalid Length", "Invalid length provided.", "OK");
+					return;
+				}
+				if (Int32.TryParse(maxStr, out int max) && max > 0)
+				{
+					Finder.WordMaxLength = max;
+				}
+				else if (maxStr.Length == 0)
+				{
+					Finder.WordMaxLength = null;
+				}
+				else
+				{
+					await DisplayAlert("Invalid Length", "Invalid length provided.", "OK");
+					return;
+				}
+				if (Finder.WordMinLength != null && Finder.WordMaxLength != null && Finder.WordMinLength > Finder.WordMaxLength)
+				{
+					await DisplayAlert("Invalid Length", "Minimum length is greater than maximum length.", "OK");
+					return;
+				}
 			}
 			else
 			{
@@ -89,29 +116,24 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 
 		string regex = Finder.GetRegex();
 
-		await DisplayAlert(Title, regex, "OK");
-
-		using var fileStream = await FileSystem.OpenAppPackageFileAsync("words.txt");
-		using var streamReader = new StreamReader(fileStream);
-		string content = await streamReader.ReadToEndAsync();
+		await DisplayAlert("Regex (for debugging)", regex, "OK");
 
 		List<string> foundWords = [];
 		try
 		{
-			foundWords = await Task.Run(() =>
+			foundWords = (await Task.Run(async () =>
 			{
-				string textLines = Regex.Replace(content, "(\r\n|\r|\n)", "\n");
-				return RegexFinder.FindWords(textLines, regex);
-			});
+				return RegexFinder.FindWords(await Globals.GetAllWords(), regex).AsEnumerable();
+			})).ToList();
 		}
 		catch
 		{
-			await DisplayAlert("Invalid Regex", "Internal regular expression match failed.\nDouble check search criteria.", "OK");
+			await DisplayAlert("Error", $"Something went wrong. Regex: \"{regex}\"", "OK");
 			return;
 		}
 		if (foundWords.Count == 0)
 		{
-			await DisplayAlert("No Words Found", "No words found matching the criteria.", "OK");
+			await DisplayAlert("No Words Found", "No words match the criteria.", "OK");
 			return;
 		}
 		if (foundWords.Count > 10000)

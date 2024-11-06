@@ -8,6 +8,15 @@ namespace WordFinder
 		{
 			public char Character { get; set; }
 			public int Number { get; set; }
+			public CharRule ConvertToRule(CharacterRule Rule)
+			{
+				return new CharRule
+				{
+					Character = Character,
+					Number = Number,
+					RuleType = Rule
+				};
+			}
 		}
 
 		public class CharRule : CharNum
@@ -18,6 +27,33 @@ namespace WordFinder
 			{
 				return $"{Character}|{Number}|{RuleType}";
 			}
+			public string ConvertToRegex()
+			{
+				if (RuleType == CharacterRule.AtPosition)
+				{
+					return $"(?=.{{{Number - 1}}}[{EscapeCharacters(Character)}].*)";
+				}
+				else if (RuleType == CharacterRule.NotAtPosition)
+				{
+					return $"(?!.{{{Number - 1}}}[{EscapeCharacters(Character)}].*)";
+				}
+				else if (RuleType == CharacterRule.ExactCount)
+				{
+					return $"(?=(.*[{EscapeCharacters(Character)}].*){{{Number}}})";
+				}
+				else if (RuleType == CharacterRule.MinCount)
+				{
+					return $"(?=(.*[{EscapeCharacters(Character)}].*){{{Number},}})";
+				}
+				else if (RuleType == CharacterRule.MaxCount)
+				{
+					return $"(?!(.*[{EscapeCharacters(Character)}].*){{{Number + 1},}})";
+				}
+				else
+				{
+					return "";
+				}
+			}
 		}
 
 		public enum CharacterRule
@@ -26,32 +62,39 @@ namespace WordFinder
 			NotAtPosition,
 			ExactCount,
 			MinCount,
-			MaxCount,
-			Exclude
-		}
-
-		public enum CountRestriction
-		{
-			None,
-			ExactCount,
-			MinCount,
 			MaxCount
 		}
 
-		public string Characters { get; set; } = default!;
+		[Flags]
+		public enum CountRestriction
+		{
+			None =			0b0,
+			ExactCount =	0b1,
+			MinCount =		0b10,
+			MaxCount =		0b100
+		}
+
+		public string Characters { get; set; } = "";
+		public string ExcludeCharacters { get; set; } = "";
 		public List<CharRule> CharacterRules { get; set; } = [];
 		public bool RestrictWordLength { get; set; }
 		public int WordLength { get; set; }
-		public int WordMaxLength { get; set; }
-		public int WordMinLength { get; set; }
+		public int? WordMaxLength { get; set; }
+		public int? WordMinLength { get; set; }
 		public bool IsLengthRange { get; set; }
 		public CountRestriction RestrictCount { get; set; }
 		public bool IncludeAll { get; set; }
 		public bool OnlyThese { get; set; }
+		public static readonly char[] EscapeTheseCharacters = [
+			'.', '*', '+',
+			'\\', '^', '$', '|', '?', '-',
+			'[', ']', '(', ')', '{', '}'
+		];
 
 		public override string ToString()
 		{
 			return $"Characters: {Characters}\n" +
+				$"ExcludeCharacters: {ExcludeCharacters}\n" +
 				$"CharacterRules: {string.Join(",", CharacterRules)}\n" +
 				$"WordLength: {WordLength}\n" +
 				$"WordMaxLength: {WordMaxLength}\n" +
@@ -64,10 +107,6 @@ namespace WordFinder
 
 		public void AddRule(char Character, int Number, CharacterRule Rule, bool SkipOrReplaceUnneeded = true)
 		{
-			if (Character.ToString() != GetSafeString(Character.ToString()))
-			{
-				return;
-			}
 			CharRule newRule = new()
 			{
 				Character = Character.ToString().ToLower()[0],
@@ -76,7 +115,7 @@ namespace WordFinder
 			};
 			if (SkipOrReplaceUnneeded && IsUnneeded(newRule))
 			{
-				// Do nothing
+				// Do nothing, this is a redundant rule
 			}
 			else
 			{
@@ -120,10 +159,7 @@ namespace WordFinder
 		{
 			CharacterRules.RemoveAll(r =>
 				r.Character == Character.ToString().ToLower()[0]
-				&& (
-					r.Number == Number
-					|| r.RuleType == CharacterRule.Exclude
-				)
+				&& r.Number == Number
 				&& r.RuleType == Rule
 			);
 		}
@@ -134,10 +170,7 @@ namespace WordFinder
 			if (CharacterRules.Any(
 				r => r.RuleType == Rule.RuleType
 				&& r.Character == Rule.Character
-				&& (
-					r.Number == Rule.Number
-					|| r.RuleType == CharacterRule.Exclude
-					)
+				&& r.Number == Rule.Number
 				)
 			)
 			{
@@ -165,10 +198,11 @@ namespace WordFinder
 			}
 			else
 			{
+				// There are no rules that make this rule unneeded
 				return false;
 			}
 		}
-
+		
 		public string GetRegex()
 		{
 			// Get characters and counts
@@ -179,12 +213,12 @@ namespace WordFinder
 				chars += c.Character.ToString();
 			}
 			string regex = "";
-			// Line Beginnings
+			// Line Beginning
 			regex += "^";
 			if (OnlyThese)
 			{
 				// Find words with only these characters
-				regex += $"([{chars}]";
+				regex += $"([{EscapeCharacters(chars)}]";
 			}
 			else
 			{
@@ -196,7 +230,19 @@ namespace WordFinder
 				if (IsLengthRange)
 				{
 					// Range length
-					regex += $"{{{WordMinLength},{WordMaxLength}}}";
+					if (WordMinLength != null)
+					{
+						regex += $"{{{WordMinLength},{WordMaxLength}}}";
+					}
+					else if (WordMaxLength != null)
+					{
+						regex += $"{{0,{WordMaxLength}}}";
+					}
+					else
+					{
+						// Any Length
+						regex += "+";
+					}
 				}
 				else
 				{
@@ -211,23 +257,25 @@ namespace WordFinder
 			// Separate using line end
 			regex += ")$";
 
-			// Create rules to handle other restrictions
+			// Create rules to handle character restrictions
 			List<CharRule> rules = [];
-			if (RestrictCount == CountRestriction.ExactCount)
+			if ((RestrictCount & CountRestriction.ExactCount) == CountRestriction.ExactCount)
 			{
-				rules.AddRange(charactersWithCount.Select(r => ConvertToRule(r, CharacterRule.ExactCount)));
+				rules.AddRange(charactersWithCount.Select(r => r.ConvertToRule(CharacterRule.ExactCount)));
 			}
-			else if (RestrictCount == CountRestriction.MinCount)
+			else if ((RestrictCount & CountRestriction.MinCount) == CountRestriction.MinCount)
 			{
-				rules.AddRange(charactersWithCount.Select(r => ConvertToRule(r, CharacterRule.MinCount)));
+				rules.AddRange(charactersWithCount.Select(r => r.ConvertToRule(CharacterRule.MinCount)));
 			}
-			else if (RestrictCount == CountRestriction.MaxCount)
+			else if ((RestrictCount & CountRestriction.MaxCount) == CountRestriction.MaxCount)
 			{
-				rules.AddRange(charactersWithCount.Select(r => ConvertToRule(r, CharacterRule.MaxCount)));
+				rules.AddRange(charactersWithCount.Select(r => r.ConvertToRule(CharacterRule.MaxCount)));
 			}
 			// RestrictExactCount and RestrictMinCount already cause the characters to be required.
-			if (IncludeAll && RestrictCount != CountRestriction.ExactCount && RestrictCount != CountRestriction.MinCount)
+			if (IncludeAll && 
+				(RestrictCount & CountRestriction.ExactCount | RestrictCount & CountRestriction.MinCount) == CountRestriction.None)
 			{
+				// Not using ConvertToRule because we only want at least one of each character
 				rules.AddRange(charactersWithCount.Select(
 					r => new CharRule
 					{
@@ -239,7 +287,12 @@ namespace WordFinder
 				));
 			}
 			// Build final regex string
-			return $"{GetRegexFromRules(CharacterRules.Concat(rules))}{regex}";
+			string ruleRegex = "";
+			foreach (CharRule rule in CharacterRules.Concat(rules))
+			{
+				ruleRegex += rule.ConvertToRegex();
+			}
+			return $"{ruleRegex}{(ExcludeCharacters.Length > 0 ? $"(?!.*[{EscapeCharacters(ExcludeCharacters)}].*)" : "")}{regex}";
 		}
 
 		/// <summary>
@@ -272,56 +325,10 @@ namespace WordFinder
 			return FindWords(File.ReadAllText(FilePath).ReplaceLineEndings("\n"));
 		}
 
-		private static CharRule ConvertToRule(CharNum CharacterWithNumber, CharacterRule Rule)
-		{
-			return new CharRule
-			{
-				Character = CharacterWithNumber.Character,
-				Number = CharacterWithNumber.Number,
-				RuleType = Rule
-			};
-		}
-
-		private static string GetRegexFromRules(IEnumerable<CharRule> rules)
-		{
-			string regexPosition = "";
-			string regexCount = "";
-			string excludedChars = "";
-
-			foreach (CharRule rule in rules)
-			{
-				if (rule.RuleType == CharacterRule.AtPosition)
-				{
-					regexPosition += $"(?=.{{{rule.Number - 1}}}{rule.Character}.*)";
-				}
-				else if (rule.RuleType == CharacterRule.NotAtPosition)
-				{
-					regexPosition += $"(?!.{{{rule.Number - 1}}}{rule.Character}.*)";
-				}
-				else if (rule.RuleType == CharacterRule.ExactCount)
-				{
-					regexCount += $"(?=(.*{rule.Character}.*){{{rule.Number}}})";
-				}
-				else if (rule.RuleType == CharacterRule.MinCount)
-				{
-					regexCount += $"(?=(.*{rule.Character}.*){{{rule.Number},}})";
-				}
-				else if (rule.RuleType == CharacterRule.MaxCount)
-				{
-					regexCount += $"(?!(.*{rule.Character}.*){{{rule.Number + 1},}})";
-				}
-				else if (rule.RuleType == CharacterRule.Exclude)
-				{
-					excludedChars += rule.Character;
-				}
-			}
-			return $"{regexPosition}{regexCount}{(excludedChars.Length > 0 ? $"(?!.*[{excludedChars}].*)" : "")}";
-		}
-
 		static private List<CharNum> GetCharactersWithCount(string Characters)
 		{
 			List<CharNum> list = [];
-			foreach (char c in GetSafeString(Characters).ToCharArray())
+			foreach (char c in Characters)
 			{
 				int i = list.FindIndex(j => j.Character == c);
 				if (i < 0)
@@ -341,12 +348,32 @@ namespace WordFinder
 			}
 			return list;
 		}
-
-		static public string GetSafeString(string str)
+		static public string EscapeCharacters(string str)
 		{
-			if (str == null) { return ""; }
-			// Replace all characters that are not alphanumeric and not empty
-			return Regex.Replace(str.ToLower(), "[^a-zA-Z0-9]", "");
+			string toReturn = "";
+			foreach (char c in str)
+			{
+				if (EscapeTheseCharacters.Contains(c))
+				{
+					toReturn += $"\\{c}";
+				}
+				else
+				{
+					toReturn += c;
+				}
+			}
+			return toReturn;
+		}
+		static public string EscapeCharacters(char c)
+		{
+			if (EscapeTheseCharacters.Contains(c))
+			{
+				return $"\\{c}";
+			}
+			else
+			{
+				return c.ToString();
+			}
 		}
 	}
 }

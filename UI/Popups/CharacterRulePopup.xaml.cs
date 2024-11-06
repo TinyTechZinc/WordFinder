@@ -42,7 +42,6 @@ public partial class CharacterRulePopup : Popup
 	[
 		RegexFinder.CharacterRule.AtPosition,
 		RegexFinder.CharacterRule.NotAtPosition,
-		//RegexFinder.CharacterRule.Exclude,
 		RegexFinder.CharacterRule.ExactCount,
 		RegexFinder.CharacterRule.MinCount,
 		RegexFinder.CharacterRule.MaxCount
@@ -64,7 +63,7 @@ public partial class CharacterRulePopup : Popup
 	private static bool TryCreateRule(string character, int ruleIndex, string number, out RegexFinder.CharRule? rule)
 	{
 		rule = null;
-		if (character.Length != 1 || character != RegexFinder.GetSafeString(character))
+		if (character.Length != 1)
 		{
 			return false;
 		}

@@ -22,13 +22,6 @@
 			MaxLength="1"
 			BindingContext="{x:Reference this}"
 			Text="{Binding RuleCharacter}" >
-			<Entry.Behaviors>
-				<toolkit:TextValidationBehavior
-					InvalidStyle="{StaticResource InvalidCharacters}"
-					ValidStyle="{StaticResource ValidCharacters}"
-					Flags="ValidateOnValueChanged"
-					RegexPattern="^[a-z0-9]*$" />
-			</Entry.Behaviors>
 		</Entry>
 		<Label
 			Text="Rule"
@@ -42,7 +35,6 @@
 				<x:Array Type="{x:Type x:String}">
 					<x:String>At Position</x:String>
 					<x:String>Not At Position</x:String>
-					<!--<x:String>Not In Word</x:String>-->
 					<x:String>Has Exact Count</x:String>
 					<x:String>Has Minimum Count</x:String>
 					<x:String>Has Maximum Count</x:String>

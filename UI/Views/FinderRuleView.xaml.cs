@@ -41,12 +41,11 @@ public partial class FinderRuleView : ContentView
 	{
 		{ RegexFinder.CharacterRule.AtPosition, "At Position" },
 		{ RegexFinder.CharacterRule.NotAtPosition, "Not At Position" },
-		{ RegexFinder.CharacterRule.Exclude, "Exclude Character" },
 		{ RegexFinder.CharacterRule.ExactCount, "Exact Count" },
 		{ RegexFinder.CharacterRule.MinCount, "Minimum Count" },
 		{ RegexFinder.CharacterRule.MaxCount, "Maximum Count" }
 	};
-	private RegexFinder.CharRule _rule;
+	private RegexFinder.CharRule _rule = new();
 	public RegexFinder.CharRule Rule
 	{
 		get => _rule;
@@ -70,12 +69,12 @@ public partial class FinderRuleView : ContentView
 		Rule = rule;
 	}
 
-	public event EventHandler RemoveClicked;
+	public event EventHandler? RemoveClicked;
 	protected virtual void OnRemoveClicked()
 	{
 		RemoveClicked?.Invoke(this, EventArgs.Empty);
 	}
-	public event EventHandler EditClicked;
+	public event EventHandler? EditClicked;
 	protected virtual void OnEditClicked()
 	{
 		EditClicked?.Invoke(this, EventArgs.Empty);
