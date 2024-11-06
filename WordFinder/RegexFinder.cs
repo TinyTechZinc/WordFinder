@@ -38,8 +38,8 @@ namespace WordFinder
 			MaxCount =		0b100
 		}
 
-		public string Characters { get; set; } = default!;
-		public string ExcludeCharacters { get; set; } = default!;
+		public string Characters { get; set; } = "";
+		public string ExcludeCharacters { get; set; } = "";
 		public List<CharRule> CharacterRules { get; set; } = [];
 		public bool RestrictWordLength { get; set; }
 		public int WordLength { get; set; }

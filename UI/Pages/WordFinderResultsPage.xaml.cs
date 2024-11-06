@@ -12,8 +12,13 @@ public partial class WordFinderResultsPage : ContentPage, IQueryAttributable
 	{
 		await Task.Run(() =>
 		{
-			var temp = query["Words"] as List<string>;
-			WordsString = string.Join("\n", temp);
+			if (query.TryGetValue("Words", out var temp)) {
+				var words = temp as List<string>;
+				if (words != null)
+				{
+					WordsString = string.Join("\n", words);
+				}
+			}
 		});
 		Editor editor = new()
 		{
