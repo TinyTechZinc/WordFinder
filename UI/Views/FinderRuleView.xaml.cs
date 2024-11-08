@@ -45,8 +45,14 @@ public partial class FinderRuleView : ContentView
 		{ RegexFinder.CharacterRule.MinCount, "Minimum Count" },
 		{ RegexFinder.CharacterRule.MaxCount, "Maximum Count" }
 	};
-	private RegexFinder.CharRule _rule = new();
-	public RegexFinder.CharRule Rule
+	public class RuleDefinition
+	{
+		public char Character;
+		public RegexFinder.CharacterRule RuleType;
+		public int Number;
+	}
+	private RuleDefinition _rule = new();
+	public RuleDefinition Rule
 	{
 		get => _rule;
 		set
@@ -60,9 +66,9 @@ public partial class FinderRuleView : ContentView
 	public FinderRuleView()
 	{
 		InitializeComponent();
-		Rule = new RegexFinder.CharRule();
+		Rule = new();
 	}
-	public FinderRuleView(RegexFinder.CharRule rule, EventHandler editClicked, EventHandler removeClicked) : this()
+	public FinderRuleView(RuleDefinition rule, EventHandler editClicked, EventHandler removeClicked) : this()
 	{
 		EditClicked += editClicked;
 		RemoveClicked += removeClicked;

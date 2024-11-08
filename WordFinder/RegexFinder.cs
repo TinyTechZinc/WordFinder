@@ -6,58 +6,6 @@ namespace WordFinder
 {
 	public class RegexFinder
 	{
-		public class CharNum
-		{
-			public char Character { get; set; }
-			public int Number { get; set; }
-			public CharRule ConvertToRule(CharacterRule Rule)
-			{
-				return new CharRule
-				{
-					Character = Character,
-					Number = Number,
-					RuleType = Rule
-				};
-			}
-		}
-
-		public class CharRule : CharNum
-		{
-			public CharacterRule RuleType { get; set; } = default!;
-
-			public override string ToString()
-			{
-				return $"{Character}|{Number}|{RuleType}";
-			}
-			public string ConvertToRegex()
-			{
-				if (RuleType == CharacterRule.AtPosition)
-				{
-					return $"(?=.{{{Number - 1}}}[{EscapeCharacters(Character)}].*)";
-				}
-				else if (RuleType == CharacterRule.NotAtPosition)
-				{
-					return $"(?!.{{{Number - 1}}}[{EscapeCharacters(Character)}].*)";
-				}
-				else if (RuleType == CharacterRule.ExactCount)
-				{
-					return $"(?=(.*[{EscapeCharacters(Character)}].*){{{Number}}})";
-				}
-				else if (RuleType == CharacterRule.MinCount)
-				{
-					return $"(?=(.*[{EscapeCharacters(Character)}].*){{{Number},}})";
-				}
-				else if (RuleType == CharacterRule.MaxCount)
-				{
-					return $"(?!(.*[{EscapeCharacters(Character)}].*){{{Number + 1},}})";
-				}
-				else
-				{
-					return "";
-				}
-			}
-		}
-
 		public enum CharacterRule
 		{
 			AtPosition,
@@ -66,16 +14,14 @@ namespace WordFinder
 			MinCount,
 			MaxCount
 		}
-
 		[Flags]
-		public enum CountRestriction
+		public enum CountRestrictions
 		{
 			None =			0b0,
 			ExactCount =	0b1,
 			MinCount =		0b10,
 			MaxCount =		0b100
 		}
-
 		public string Characters { get; set; } = "";
 		/// <summary>
 		/// Require all characters in Characters to be used.
@@ -117,11 +63,7 @@ namespace WordFinder
 		/// <summary>
 		/// Add constraints on the number of times each character can appear in the word.
 		/// </summary>
-		public CountRestriction RestrictCount { get; set; }
-		/// <summary>
-		/// Additional rules.
-		/// </summary>
-		public List<CharRule> CharacterRules { get; set; } = [];
+		public CountRestrictions RestrictCount { get; set; }
 		/// <summary>
 		/// The set of characters considered dangerous to the regular expression and must be escaped.
 		/// </summary>
@@ -165,7 +107,6 @@ namespace WordFinder
 		{
 			return $"Characters: {Characters}\n" +
 				$"ExcludeCharacters: {ExcludeCharacters}\n" +
-				$"CharacterRules: {string.Join(",", CharacterRules)}\n" +
 				$"WordLength: {WordLength}\n" +
 				$"WordMaxLength: {WordMaxLength}\n" +
 				$"WordMinLength: {WordMinLength}\n" +
@@ -220,7 +161,7 @@ namespace WordFinder
 				chars.Add(character);
 			}
 		}
-		public void SetCharacterCount(char character, CountRestriction countRestriction, int count, bool errorOnDuplicateOrConflict = true)
+		public void SetCharacterCount(char character, CountRestrictions countRestriction, int count, bool errorOnDuplicateOrConflict = true)
 		{
 			// Obtain or create count constraint
 			if (!CharacterCount.TryGetValue(character, out var constraint))
@@ -230,9 +171,9 @@ namespace WordFinder
 			}
 			switch (countRestriction)
 			{
-				case CountRestriction.None:
+				case CountRestrictions.None:
 					throw new ArgumentException("Count restriction must be specified.", nameof(countRestriction));
-				case CountRestriction.ExactCount:
+				case CountRestrictions.ExactCount:
 					if (constraint.ExactCount != null)
 					{
 						if (errorOnDuplicateOrConflict)
@@ -249,7 +190,7 @@ namespace WordFinder
 						constraint.ExactCount = count;
 					}
 					break;
-				case CountRestriction.MinCount:
+				case CountRestrictions.MinCount:
 					if (constraint.MinCount != null && constraint.MinCount > count)
 					{
 						if (errorOnDuplicateOrConflict)
@@ -266,7 +207,7 @@ namespace WordFinder
 						constraint.MinCount = count;
 					}
 					break;
-				case CountRestriction.MaxCount:
+				case CountRestrictions.MaxCount:
 					if (constraint.MaxCount != null && constraint.MaxCount < count)
 					{
 						if (errorOnDuplicateOrConflict)
@@ -298,13 +239,13 @@ namespace WordFinder
 					SetCharacterNotAtPosition(character, number, errorOnDuplicateOrConflict);
 					break;
 				case CharacterRule.ExactCount:
-					SetCharacterCount(character, CountRestriction.ExactCount, number, errorOnDuplicateOrConflict);
+					SetCharacterCount(character, CountRestrictions.ExactCount, number, errorOnDuplicateOrConflict);
 					break;
 				case CharacterRule.MinCount:
-					SetCharacterCount(character, CountRestriction.MinCount, number, errorOnDuplicateOrConflict);
+					SetCharacterCount(character, CountRestrictions.MinCount, number, errorOnDuplicateOrConflict);
 					break;
 				case CharacterRule.MaxCount:
-					SetCharacterCount(character, CountRestriction.MaxCount, number, errorOnDuplicateOrConflict);
+					SetCharacterCount(character, CountRestrictions.MaxCount, number, errorOnDuplicateOrConflict);
 					break;
 				default:
 					throw new NotImplementedException($"Rule type {rule} is not implemented.");
@@ -469,7 +410,7 @@ namespace WordFinder
 			if (IncludeAll)
 			{
 				// Add minimum count restriction if it is not already set
-				RestrictCount |= CountRestriction.MinCount;
+				RestrictCount |= CountRestrictions.MinCount;
 			}
 
 			// Handle character count requirements
@@ -489,7 +430,7 @@ namespace WordFinder
 			// Add constraints for each character
 			foreach (var cc in charCounts)
 			{
-				if ((RestrictCount & CountRestriction.ExactCount) == CountRestriction.ExactCount)
+				if ((RestrictCount & CountRestrictions.ExactCount) == CountRestrictions.ExactCount)
 				{
 					if (CharacterCount.TryGetValue(cc.Key, out var constraint))
 					{
@@ -501,7 +442,7 @@ namespace WordFinder
 						CharacterCount.Add(cc.Key, new CountConstraint { ExactCount = cc.Value });
 					}
 				}
-				else if ((RestrictCount & CountRestriction.MinCount) == CountRestriction.MinCount)
+				else if ((RestrictCount & CountRestrictions.MinCount) == CountRestrictions.MinCount)
 				{
 					if (CharacterCount.TryGetValue(cc.Key, out var constraint))
 					{
@@ -516,7 +457,7 @@ namespace WordFinder
 						CharacterCount.Add(cc.Key, new CountConstraint { MinCount = cc.Value });
 					}
 				}
-				else if ((RestrictCount & CountRestriction.MaxCount) == CountRestriction.MaxCount)
+				else if ((RestrictCount & CountRestrictions.MaxCount) == CountRestrictions.MaxCount)
 				{
 					if (CharacterCount.TryGetValue(cc.Key, out var constraint))
 					{

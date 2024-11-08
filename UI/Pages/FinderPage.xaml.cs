@@ -1,5 +1,4 @@
 using CommunityToolkit.Maui.Views;
-using System.Text.RegularExpressions;
 using UI.Views;
 using WordFinder;
 
@@ -17,10 +16,10 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 	/// <param name="query"></param>
 	public void ApplyQueryAttributes(IDictionary<string, object> query)
 	{
-		if (query.TryGetValue("NewRule", out var rule))
+		if (query.TryGetValue("Rules", out var rules))
 		{
 			// to do
-			if (rule != null) { }
+			if (rules != null) { }
 		}
 	}
 
@@ -106,8 +105,7 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 				return;
 			}
 		}
-		// Read rules
-		Finder.CharacterRules.Clear();
+		// Add rules
 		foreach (FinderRuleView rule in RuleList.Cast<FinderRuleView>())
 		{
 			Finder.AddRule(rule.Rule.Character, rule.Rule.Number, rule.Rule.RuleType);
@@ -157,7 +155,7 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 	{
 		var rulePopup = new Popups.CharacterRulePopup();
 		var result = await this.ShowPopupAsync(rulePopup);
-		if (result != null && result is RegexFinder.CharRule rule)
+		if (result != null && result is FinderRuleView.RuleDefinition rule)
 		{
 			RuleList.Add(new FinderRuleView(rule, Rule_EditClicked!, Rule_RemoveClicked!));
 		}
@@ -168,7 +166,7 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 		{
 			var rulePopup = new Popups.CharacterRulePopup(ruleView.Rule);
 			var result = await this.ShowPopupAsync(rulePopup);
-			if (result != null && result is RegexFinder.CharRule newRule)
+			if (result != null && result is FinderRuleView.RuleDefinition newRule)
 			{
 				ruleView.Rule = newRule;
 			}

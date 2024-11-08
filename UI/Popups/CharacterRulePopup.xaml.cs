@@ -1,4 +1,5 @@
 using CommunityToolkit.Maui.Views;
+using UI.Views;
 using WordFinder;
 
 namespace UI.Popups;
@@ -53,14 +54,14 @@ public partial class CharacterRulePopup : Popup
 		PickerRule.SelectedIndexChanged += State_Changed!;
 		EntryNumber.TextChanged += State_Changed!;
 	}
-	public CharacterRulePopup(RegexFinder.CharRule rule) : this()
+	public CharacterRulePopup(FinderRuleView.RuleDefinition rule) : this()
 	{
 		RuleCharacter = rule.Character.ToString();
 		RuleNumber = rule.Number.ToString();
 		RuleTypeIndex = RuleList.IndexOf(rule.RuleType);
 		ButtonAddRule.Text = "Update Rule";
 	}
-	private static bool TryCreateRule(string character, int ruleIndex, string number, out RegexFinder.CharRule? rule)
+	private static bool TryCreateRule(string character, int ruleIndex, string number, out FinderRuleView.RuleDefinition? rule)
 	{
 		rule = null;
 		if (character.Length != 1)
@@ -78,8 +79,8 @@ public partial class CharacterRulePopup : Popup
 		rule = new()
 		{
 			Character = character[0],
-			Number = num,
-			RuleType = RuleList[ruleIndex]
+			RuleType = RuleList[ruleIndex],
+			Number = num
 		};
 		return true;
 	}
