@@ -87,17 +87,16 @@ namespace WordFinder
 					regex += $"(?=(.*[{EscapeCharacters(character)}].*){{{ExactCount}}})";
 				}
 				// We cannot combine MinCount and MaxCount because MaxCount must be a negative lookahead
-				else if (MinCount != null)
-				{
-					regex += $"(?=(.*[{EscapeCharacters(character)}].*){{{MinCount},}})";
-				}
-				else if (MaxCount != null)
-				{
-					regex += $"(?!(.*[{EscapeCharacters(character)}].*){{{MaxCount + 1},}})";
-				}
 				else
 				{
-					// No constraint
+					if (MinCount != null)
+					{
+						regex += $"(?=(.*[{EscapeCharacters(character)}].*){{{MinCount},}})";
+					}
+					if (MaxCount != null)
+					{
+						regex += $"(?!(.*[{EscapeCharacters(character)}].*){{{MaxCount + 1},}})";
+					}
 				}
 				return regex;
 			}
@@ -265,16 +264,19 @@ namespace WordFinder
 			}
 			else if (ExcludeCharacters.Length > 0)
 			{
-				filler = $"[^{EscapeCharacters(string.Join(null, ExcludeCharacters.Distinct()))}]";
+				// Negative character groups would normally allow newlines, so \n needs to be explicitly excluded
+				filler = $"[^{EscapeCharacters(string.Join(null, ExcludeCharacters.Distinct()))}\n]";
 			}
 			else
 			{
 				filler = ".";
 			}
-			string regex = "^(";
+			string regex = "";
 			if (CharacterAtPosition.Count > 0 || CharactersNotAtPosition.Count > 0)
 			{
-				var maxPosition = Math.Max(CharacterAtPosition.Keys.Max(), CharactersNotAtPosition.Keys.Max());
+				var maxPosition = Math.Max(
+					CharacterAtPosition.Count == 0 ? 0 : CharacterAtPosition.Keys.Max(),
+					CharactersNotAtPosition.Count == 0 ? 0 : CharactersNotAtPosition.Keys.Max());
 				if (RestrictWordLength)
 				{
 					if (IsLengthRange && maxPosition > WordMaxLength)
@@ -293,7 +295,14 @@ namespace WordFinder
 					{
 						if (buffer > 0)
 						{
-							regex += $"{filler}{{{buffer}}}";
+							if (buffer == 1)
+							{
+								regex += $"{filler}";
+							}
+							else
+							{
+								regex += $"{filler}{{{buffer}}}";
+							}
 							buffer = 0;
 						}
 						regex += $"[{EscapeCharacters(c)}]";
@@ -302,7 +311,14 @@ namespace WordFinder
 					{
 						if (buffer > 0)
 						{
-							regex += $"{filler}{{{buffer}}}";
+							if (buffer == 1)
+							{
+								regex += $"{filler}";
+							}
+							else
+							{
+								regex += $"{filler}{{{buffer}}}";
+							}
 							buffer = 0;
 						}
 						if (OnlyThese)
@@ -313,7 +329,7 @@ namespace WordFinder
 						else
 						{
 							// It can be any character except the excluded ones
-							regex += $"[^{EscapeCharacters(string.Join(null, xChars.Concat(ExcludeCharacters).Distinct()))}]";
+							regex += $"[^{EscapeCharacters(string.Join(null, xChars.Concat(ExcludeCharacters).Distinct()))}\n]";
 						}
 					}
 					else
@@ -377,7 +393,7 @@ namespace WordFinder
 			else
 			{
 				// There are no character position rules
-				// regex == "^(" here
+				// regex == "" here
 				if (RestrictWordLength)
 				{
 					if (IsLengthRange)
@@ -404,8 +420,6 @@ namespace WordFinder
 					regex += $"{filler}+";
 				}
 			}
-			// Cap regex
-			regex += ")$";
 			// Adjust character count constraints using IncludeAll
 			if (IncludeAll)
 			{
@@ -442,34 +456,37 @@ namespace WordFinder
 						CharacterCount.Add(cc.Key, new CountConstraint { ExactCount = cc.Value });
 					}
 				}
-				else if ((RestrictCount & CountRestrictions.MinCount) == CountRestrictions.MinCount)
+				else // If the exact count is used, the min and max can be ignored
 				{
-					if (CharacterCount.TryGetValue(cc.Key, out var constraint))
+					if ((RestrictCount & CountRestrictions.MinCount) == CountRestrictions.MinCount)
 					{
-						// Keep the tighter constraint
-						if (constraint.MinCount == null || cc.Value > constraint.MinCount)
+						if (CharacterCount.TryGetValue(cc.Key, out var constraint))
 						{
-							constraint.MinCount = cc.Value;
+							// Keep the tighter constraint
+							if (constraint.MinCount == null || cc.Value > constraint.MinCount)
+							{
+								constraint.MinCount = cc.Value;
+							}
+						}
+						else
+						{
+							CharacterCount.Add(cc.Key, new CountConstraint { MinCount = cc.Value });
 						}
 					}
-					else
+					if ((RestrictCount & CountRestrictions.MaxCount) == CountRestrictions.MaxCount)
 					{
-						CharacterCount.Add(cc.Key, new CountConstraint { MinCount = cc.Value });
-					}
-				}
-				else if ((RestrictCount & CountRestrictions.MaxCount) == CountRestrictions.MaxCount)
-				{
-					if (CharacterCount.TryGetValue(cc.Key, out var constraint))
-					{
-						// Keep the tighter constraint
-						if (constraint.MaxCount == null || cc.Value < constraint.MaxCount)
+						if (CharacterCount.TryGetValue(cc.Key, out var constraint))
 						{
-							constraint.MaxCount = cc.Value;
+							// Keep the tighter constraint
+							if (constraint.MaxCount == null || cc.Value < constraint.MaxCount)
+							{
+								constraint.MaxCount = cc.Value;
+							}
 						}
-					}
-					else
-					{
-						CharacterCount.Add(cc.Key, new CountConstraint { MaxCount = cc.Value });
+						else
+						{
+							CharacterCount.Add(cc.Key, new CountConstraint { MaxCount = cc.Value });
+						}
 					}
 				}
 			}
@@ -479,7 +496,7 @@ namespace WordFinder
 			{
 				countRegex += cc.Value.ToRegex(cc.Key);
 			}
-			return $"{countRegex}{regex}";
+			return $"^(?<word>{countRegex}{regex})$";
 		}
 
 		/// <summary>
@@ -489,10 +506,11 @@ namespace WordFinder
 		/// <returns></returns>
 		public static List<string> FindWords(string ToSearch, string regex)
 		{
+
 			MatchCollection matches = Regex.Matches(
 				ToSearch,
 				regex,
-				RegexOptions.IgnoreCase | RegexOptions.Multiline
+				RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.ExplicitCapture
 			);
 			List<string> words = [];
 			foreach (Match match in matches.Cast<Match>())

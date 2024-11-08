@@ -1,6 +1,8 @@
 using CommunityToolkit.Maui.Views;
+using System.Text.RegularExpressions;
 using UI.Views;
 using WordFinder;
+using WordFinder.Exceptions;
 
 namespace UI.Pages;
 
@@ -113,13 +115,12 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 
 		// More to be added here
 
-		string regex = Finder.GetRegex();
-
-		await DisplayAlert("Regex (for debugging)", regex, "OK");
-
 		List<string> foundWords = [];
+		string regex = "";
 		try
 		{
+			regex = Finder.GetRegex();
+			await DisplayAlert("Regex (for debugging)", regex.Replace("\n", "\\n"), "OK");
 			foundWords = (await Task.Run(async () =>
 			{
 				return RegexFinder.FindWords(await Globals.GetAllWords(), regex).AsEnumerable();
@@ -127,9 +128,24 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 		}
 		catch
 		{
-			await DisplayAlert("Error", $"Something went wrong. Regex: \"{regex}\"", "OK");
-			return;
+			throw;
 		}
+		//catch (FinderRuleConflictException ex)
+		//{
+		//	await DisplayAlert("Rule Conflict", ex.Message, "OK");
+		//	return;
+		//}
+		//catch (FinderDuplicateRuleException e)
+		//{
+		//	await DisplayAlert("Duplicate Rule", e.Message, "OK");
+		//	return;
+		//}
+		//catch
+		//{
+		//	await DisplayAlert("Error", $"Something went wrong. Regex: \"{regex}\"", "OK");
+		//	return;
+		//}
+
 		if (foundWords.Count == 0)
 		{
 			await DisplayAlert("No Words Found", "No words match the criteria.", "OK");
