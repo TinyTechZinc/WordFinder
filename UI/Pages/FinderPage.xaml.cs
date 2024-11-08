@@ -126,24 +126,24 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 				return RegexFinder.FindWords(await Globals.GetAllWords(), regex).AsEnumerable();
 			})).ToList();
 		}
+		catch (FinderRuleConflictException ex)
+		{
+			await DisplayAlert("Rule Conflict", ex.Message, "OK");
+			return;
+		}
+		catch (FinderDuplicateRuleException e)
+		{
+			await DisplayAlert("Duplicate Rule", e.Message, "OK");
+			return;
+		}
 		catch
 		{
-			throw;
+			await DisplayAlert("Error", $"Something went wrong. Regex: \"{regex}\"", "OK");
+			return;
 		}
-		//catch (FinderRuleConflictException ex)
-		//{
-		//	await DisplayAlert("Rule Conflict", ex.Message, "OK");
-		//	return;
-		//}
-		//catch (FinderDuplicateRuleException e)
-		//{
-		//	await DisplayAlert("Duplicate Rule", e.Message, "OK");
-		//	return;
-		//}
 		//catch
 		//{
-		//	await DisplayAlert("Error", $"Something went wrong. Regex: \"{regex}\"", "OK");
-		//	return;
+		//	throw;
 		//}
 
 		if (foundWords.Count == 0)
