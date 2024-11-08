@@ -2,16 +2,15 @@ using CommunityToolkit.Maui.Views;
 using System.Text.RegularExpressions;
 using UI.Views;
 using WordFinder;
+using WordFinder.Exceptions;
 
 namespace UI.Pages;
 
 public partial class FinderPage : ContentPage, IQueryAttributable
 {
-	readonly RegexFinder Finder;
 	public FinderPage()
 	{
 		InitializeComponent();
-		Finder = new();
 	}
 	/// <summary>
 	/// Allows additional rules to be added.
@@ -19,10 +18,10 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 	/// <param name="query"></param>
 	public void ApplyQueryAttributes(IDictionary<string, object> query)
 	{
-		if (query.TryGetValue("NewRule", out var rule))
+		if (query.TryGetValue("Rules", out var rules))
 		{
 			// to do
-			if (rule != null) { }
+			if (rules != null) { }
 		}
 	}
 
@@ -45,10 +44,13 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 			await DisplayAlert("No Characters", "'Only These' requires characters to be provided.", "OK");
 			return;
 		}
-		Finder.IncludeAll = CheckBoxIncludeAll.IsChecked;
-		Finder.OnlyThese = CheckBoxOnlyThese.IsChecked;
-		Finder.Characters = characters;
-		Finder.ExcludeCharacters = EntryExcludeCharacters.Text ?? "";
+		RegexFinder Finder = new()
+		{
+			IncludeAll = CheckBoxIncludeAll.IsChecked,
+			OnlyThese = CheckBoxOnlyThese.IsChecked,
+			Characters = characters,
+			ExcludeCharacters = EntryExcludeCharacters.Text ?? ""
+		};
 
 		if (RadioButtonAny.IsChecked)
 		{
@@ -105,8 +107,7 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 				return;
 			}
 		}
-		// Read rules
-		Finder.CharacterRules.Clear();
+		// Add rules
 		foreach (FinderRuleView rule in RuleList.Cast<FinderRuleView>())
 		{
 			Finder.AddRule(rule.Rule.Character, rule.Rule.Number, rule.Rule.RuleType);
@@ -114,23 +115,37 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 
 		// More to be added here
 
-		string regex = Finder.GetRegex();
-
-		await DisplayAlert("Regex (for debugging)", regex, "OK");
-
 		List<string> foundWords = [];
+		string regex = "";
 		try
 		{
+			regex = Finder.GetRegex();
+			await DisplayAlert("Regex (for debugging)", regex.Replace("\n", "\\n"), "OK");
 			foundWords = (await Task.Run(async () =>
 			{
 				return RegexFinder.FindWords(await Globals.GetAllWords(), regex).AsEnumerable();
 			})).ToList();
+		}
+		catch (FinderRuleConflictException ex)
+		{
+			await DisplayAlert("Rule Conflict", ex.Message, "OK");
+			return;
+		}
+		catch (FinderDuplicateRuleException e)
+		{
+			await DisplayAlert("Duplicate Rule", e.Message, "OK");
+			return;
 		}
 		catch
 		{
 			await DisplayAlert("Error", $"Something went wrong. Regex: \"{regex}\"", "OK");
 			return;
 		}
+		//catch
+		//{
+		//	throw;
+		//}
+
 		if (foundWords.Count == 0)
 		{
 			await DisplayAlert("No Words Found", "No words match the criteria.", "OK");
@@ -156,7 +171,7 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 	{
 		var rulePopup = new Popups.CharacterRulePopup();
 		var result = await this.ShowPopupAsync(rulePopup);
-		if (result != null && result is RegexFinder.CharRule rule)
+		if (result != null && result is FinderRuleView.RuleDefinition rule)
 		{
 			RuleList.Add(new FinderRuleView(rule, Rule_EditClicked!, Rule_RemoveClicked!));
 		}
@@ -167,7 +182,7 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 		{
 			var rulePopup = new Popups.CharacterRulePopup(ruleView.Rule);
 			var result = await this.ShowPopupAsync(rulePopup);
-			if (result != null && result is RegexFinder.CharRule newRule)
+			if (result != null && result is FinderRuleView.RuleDefinition newRule)
 			{
 				ruleView.Rule = newRule;
 			}

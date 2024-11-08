@@ -16,7 +16,10 @@ public partial class WordFinderResultsPage : ContentPage, IQueryAttributable
 				if (temp is List<string> words)
 				{
 					WordsString = string.Join("\n", words);
-					this.Title = $"Words Found: {words.Count}";
+					Dispatcher.Dispatch(() =>
+					{
+						Title = $"Words Found: {words.Count}";
+					});
 				}
 			}
 		});
