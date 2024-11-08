@@ -7,11 +7,9 @@ namespace UI.Pages;
 
 public partial class FinderPage : ContentPage, IQueryAttributable
 {
-	readonly RegexFinder Finder;
 	public FinderPage()
 	{
 		InitializeComponent();
-		Finder = new();
 	}
 	/// <summary>
 	/// Allows additional rules to be added.
@@ -45,10 +43,13 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 			await DisplayAlert("No Characters", "'Only These' requires characters to be provided.", "OK");
 			return;
 		}
-		Finder.IncludeAll = CheckBoxIncludeAll.IsChecked;
-		Finder.OnlyThese = CheckBoxOnlyThese.IsChecked;
-		Finder.Characters = characters;
-		Finder.ExcludeCharacters = EntryExcludeCharacters.Text ?? "";
+		RegexFinder Finder = new()
+		{
+			IncludeAll = CheckBoxIncludeAll.IsChecked,
+			OnlyThese = CheckBoxOnlyThese.IsChecked,
+			Characters = characters,
+			ExcludeCharacters = EntryExcludeCharacters.Text ?? ""
+		};
 
 		if (RadioButtonAny.IsChecked)
 		{

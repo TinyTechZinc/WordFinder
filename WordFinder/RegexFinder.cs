@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
+using WordFinder.Exceptions;
 
 namespace WordFinder
 {
@@ -75,22 +77,90 @@ namespace WordFinder
 		}
 
 		public string Characters { get; set; } = "";
-		public string ExcludeCharacters { get; set; } = "";
-		public List<CharRule> CharacterRules { get; set; } = [];
-		public bool RestrictWordLength { get; set; }
-		public int WordLength { get; set; }
-		public int? WordMaxLength { get; set; }
-		public int? WordMinLength { get; set; }
-		public bool IsLengthRange { get; set; }
-		public CountRestriction RestrictCount { get; set; }
+		/// <summary>
+		/// Require all characters in Characters to be used.
+		/// Sets the minimum count for each character to the number of times it appears in Characters.
+		/// </summary>
 		public bool IncludeAll { get; set; }
+		/// <summary>
+		/// Limit the characters used to only those in Characters.
+		/// </summary>
 		public bool OnlyThese { get; set; }
+		/// <summary>
+		/// Add constraints on the length of the word.
+		/// </summary>
+		public bool RestrictWordLength { get; set; }
+		/// <summary>
+		/// Determines whether the word length is a range or exact.
+		/// Ignored if <see cref="RestrictWordLength"/> is <see langword="false"/>.
+		/// </summary>
+		public bool IsLengthRange { get; set; }
+		/// <summary>
+		/// Sets the required word length.
+		/// Ignored if <see cref="RestrictWordLength"/> is <see langword="false"/> or <see cref="IsLengthRange"/> is <see langword="true"/>.
+		/// </summary>
+		public int WordLength { get; set; }
+		/// <summary>
+		/// Optionally add a maximum length for the word.
+		/// Ignored if <see cref="RestrictWordLength"/> or <see cref="IsLengthRange"/> is <see langword="false"/>.
+		/// </summary>
+		public int? WordMaxLength { get; set; }
+		/// <summary>
+		/// Optionally add a minimum length for the word.
+		/// Ignored if <see cref="RestrictWordLength"/> or <see cref="IsLengthRange"/> is <see langword="false"/>.
+		/// </summary>
+		public int? WordMinLength { get; set; }
+		/// <summary>
+		/// Exclude these characters from the word.
+		/// </summary>
+		public string ExcludeCharacters { get; set; } = "";
+		/// <summary>
+		/// Add constraints on the number of times each character can appear in the word.
+		/// </summary>
+		public CountRestriction RestrictCount { get; set; }
+		/// <summary>
+		/// Additional rules.
+		/// </summary>
+		public List<CharRule> CharacterRules { get; set; } = [];
+		/// <summary>
+		/// The set of characters considered dangerous to the regular expression and must be escaped.
+		/// </summary>
 		public static readonly char[] EscapeTheseCharacters = [
 			'.', '*', '+',
 			'\\', '^', '$', '|', '?', '-',
 			'[', ']', '(', ')', '{', '}'
 		];
-
+		private Dictionary<int, char> CharacterAtPosition { get; set; } = [];
+		private Dictionary<int, List<char>> CharactersNotAtPosition { get; set; } = [];
+		public class CountConstraint
+		{
+			public int? ExactCount { get; set; }
+			public int? MinCount { get; set; }
+			public int? MaxCount { get; set; }
+			public string ToRegex(char character)
+			{
+				string regex = "";
+				if (ExactCount != null)
+				{
+					regex += $"(?=(.*[{EscapeCharacters(character)}].*){{{ExactCount}}})";
+				}
+				// We cannot combine MinCount and MaxCount because MaxCount must be a negative lookahead
+				else if (MinCount != null)
+				{
+					regex += $"(?=(.*[{EscapeCharacters(character)}].*){{{MinCount},}})";
+				}
+				else if (MaxCount != null)
+				{
+					regex += $"(?!(.*[{EscapeCharacters(character)}].*){{{MaxCount + 1},}})";
+				}
+				else
+				{
+					// No constraint
+				}
+				return regex;
+			}
+		}
+		private Dictionary<char, CountConstraint> CharacterCount { get; set; } = [];
 		public override string ToString()
 		{
 			return $"Characters: {Characters}\n" +
@@ -104,195 +174,371 @@ namespace WordFinder
 				$"IncludeAll: {IncludeAll}\n" +
 				$"OnlyThese: {OnlyThese}";
 		}
-
-		public void AddRule(char Character, int Number, CharacterRule Rule, bool SkipOrReplaceUnneeded = true)
+		public void SetCharacterAtPosition(char character, int position, bool errorOnDuplicateOrConflict = true)
 		{
-			CharRule newRule = new()
+			if (CharactersNotAtPosition.TryGetValue(position, out var chars) && chars.Contains(character))
 			{
-				Character = Character.ToString().ToLower()[0],
-				Number = Number,
-				RuleType = Rule
-			};
-			if (SkipOrReplaceUnneeded && IsUnneeded(newRule))
-			{
-				// Do nothing, this is a redundant rule
+				throw new FinderRuleConflictException($"Character '{character}' cannot be at position {position} because it is already excluded from that position.");
 			}
-			else
+			if (!CharacterAtPosition.TryAdd(position, character))
 			{
-				if (SkipOrReplaceUnneeded)
-				// Remove rules being replaced
+				if (errorOnDuplicateOrConflict)
 				{
-					if (newRule.RuleType == CharacterRule.MinCount)
-					// Replace the lower bound
+					if (CharacterAtPosition[position] != character)
 					{
-						CharacterRules.RemoveAll(
-							r => r.RuleType == CharacterRule.MinCount
-							&& r.Character == newRule.Character
-							&& r.Number < newRule.Number
-						);
-					}
-					if (newRule.RuleType == CharacterRule.MaxCount)
-					// Replace the upper bound
-					{
-						CharacterRules.RemoveAll(
-							r => r.RuleType == CharacterRule.MaxCount
-							&& r.Character == newRule.Character
-							&& r.Number > newRule.Number
-						);
-					}
-					if (newRule.RuleType == CharacterRule.ExactCount)
-					// Replace both upper and lower bounds with exact
-					{
-						CharacterRules.RemoveAll(
-							r => (
-								r.RuleType == CharacterRule.MinCount
-								|| r.RuleType == CharacterRule.MaxCount
-							) && r.Character == newRule.Character
-						);
-					}
-				}
-				CharacterRules.Add(newRule);
-			}
-		}
-
-		public void RemoveRule(char Character, int Number, CharacterRule Rule)
-		{
-			CharacterRules.RemoveAll(r =>
-				r.Character == Character.ToString().ToLower()[0]
-				&& r.Number == Number
-				&& r.RuleType == Rule
-			);
-		}
-
-		private bool IsUnneeded(CharRule Rule)
-		{
-			// Check for exact matches
-			if (CharacterRules.Any(
-				r => r.RuleType == Rule.RuleType
-				&& r.Character == Rule.Character
-				&& r.Number == Rule.Number
-				)
-			)
-			{
-				return true;
-			}
-			// Check if there is already a tighter lower bound
-			else if (Rule.RuleType == CharacterRule.MinCount
-				&& CharacterRules.Any(
-					r => r.RuleType == CharacterRule.MinCount
-					&& r.Number > Rule.Number
-				)
-			)
-			{
-				return true;
-			}
-			// Check if there is already a tighter upper bound
-			else if (Rule.RuleType == CharacterRule.MaxCount
-				&& CharacterRules.Any(
-					r => r.RuleType == CharacterRule.MaxCount
-					&& r.Number < Rule.Number
-				)
-			)
-			{
-				return true;
-			}
-			else
-			{
-				// There are no rules that make this rule unneeded
-				return false;
-			}
-		}
-		
-		public string GetRegex()
-		{
-			// Get characters and counts
-			List<CharNum> charactersWithCount = GetCharactersWithCount(Characters);
-			string chars = "";
-			foreach (CharNum c in charactersWithCount)
-			{
-				chars += c.Character.ToString();
-			}
-			string regex = "";
-			// Line Beginning
-			regex += "^";
-			if (OnlyThese)
-			{
-				// Find words with only these characters
-				regex += $"([{EscapeCharacters(chars)}]";
-			}
-			else
-			{
-				regex += "(.";
-			}
-			if (RestrictWordLength)
-			{
-				// With length
-				if (IsLengthRange)
-				{
-					// Range length
-					if (WordMinLength != null)
-					{
-						regex += $"{{{WordMinLength},{WordMaxLength}}}";
-					}
-					else if (WordMaxLength != null)
-					{
-						regex += $"{{0,{WordMaxLength}}}";
+						throw new FinderRuleConflictException($"Cannot add '{character}' to position {position}, position already has '{CharacterAtPosition[position]}'.");
 					}
 					else
 					{
-						// Any Length
-						regex += "+";
+						throw new FinderDuplicateRuleException($"Already has '{character}' at position {position}.");
 					}
 				}
 				else
 				{
-					// Exact length
-					regex += $"{{{WordLength}}}";
+					// Replace the character
+					CharacterAtPosition[position] = character;
+				}
+			}
+		}
+		public void SetCharacterNotAtPosition(char character, int position, bool errorOnDuplicateOrConflict = true)
+		{
+			if (errorOnDuplicateOrConflict && CharacterAtPosition.TryGetValue(position, out var c) && c == character)
+			{
+				throw new FinderRuleConflictException($"Character '{character}' cannot be excluded from position {position} because it is already at that position.");
+			}
+			if (!CharactersNotAtPosition.TryGetValue(position, out var chars))
+			{
+				chars = [character];
+				CharactersNotAtPosition.Add(position, chars);
+			}
+			else if (errorOnDuplicateOrConflict && chars.Contains(character))
+			{
+				throw new FinderDuplicateRuleException($"Character '{character}' is already excluded from position {position}.");
+			}
+			else
+			{
+				chars.Add(character);
+			}
+		}
+		public void SetCharacterCount(char character, CountRestriction countRestriction, int count, bool errorOnDuplicateOrConflict = true)
+		{
+			// Obtain or create count constraint
+			if (!CharacterCount.TryGetValue(character, out var constraint))
+			{
+				constraint = new CountConstraint();
+				CharacterCount.Add(character, constraint);
+			}
+			switch (countRestriction)
+			{
+				case CountRestriction.None:
+					throw new ArgumentException("Count restriction must be specified.", nameof(countRestriction));
+				case CountRestriction.ExactCount:
+					if (constraint.ExactCount != null)
+					{
+						if (errorOnDuplicateOrConflict)
+						{
+							throw new FinderRuleConflictException($"Exact count for '{character}' is already set to {constraint.ExactCount}.");
+						}
+						else
+						{
+							constraint.ExactCount = count;
+						}
+					}
+					else
+					{
+						constraint.ExactCount = count;
+					}
+					break;
+				case CountRestriction.MinCount:
+					if (constraint.MinCount != null && constraint.MinCount > count)
+					{
+						if (errorOnDuplicateOrConflict)
+						{
+							throw new FinderRuleConflictException($"A tighter minimum count for '{character}' is already set to {constraint.MinCount}.");
+						}
+						else
+						{
+							constraint.MinCount = count;
+						}
+					}
+					else
+					{
+						constraint.MinCount = count;
+					}
+					break;
+				case CountRestriction.MaxCount:
+					if (constraint.MaxCount != null && constraint.MaxCount < count)
+					{
+						if (errorOnDuplicateOrConflict)
+						{
+							throw new FinderRuleConflictException($"A tighter maximum count for '{character}' is already set to {constraint.MaxCount}.");
+						}
+						else
+						{
+							constraint.MaxCount = count;
+						}
+					}
+					else
+					{
+						constraint.MaxCount = count;
+					}
+					break;
+				default:
+					throw new NotImplementedException($"Count restriction {countRestriction} is not implemented.");
+			}
+		}
+		public void AddRule(char character, int number, CharacterRule rule, bool errorOnDuplicateOrConflict = true)
+		{
+			switch (rule)
+			{
+				case CharacterRule.AtPosition:
+					SetCharacterAtPosition(character, number, errorOnDuplicateOrConflict);
+					break;
+				case CharacterRule.NotAtPosition:
+					SetCharacterNotAtPosition(character, number, errorOnDuplicateOrConflict);
+					break;
+				case CharacterRule.ExactCount:
+					SetCharacterCount(character, CountRestriction.ExactCount, number, errorOnDuplicateOrConflict);
+					break;
+				case CharacterRule.MinCount:
+					SetCharacterCount(character, CountRestriction.MinCount, number, errorOnDuplicateOrConflict);
+					break;
+				case CharacterRule.MaxCount:
+					SetCharacterCount(character, CountRestriction.MaxCount, number, errorOnDuplicateOrConflict);
+					break;
+				default:
+					throw new NotImplementedException($"Rule type {rule} is not implemented.");
+			}
+		}
+		public string GetRegex()
+		{
+			// Validate
+			if (Characters.Intersect(ExcludeCharacters).Any())
+			{
+				throw new FinderRuleConflictException("The same character is in both Characters and Exclude Characters.");
+			}
+			string filler;
+			if (OnlyThese)
+			{
+				filler = $"[{EscapeCharacters(string.Join(null, Characters.Distinct()))}]";
+			}
+			else if (ExcludeCharacters.Length > 0)
+			{
+				filler = $"[^{EscapeCharacters(string.Join(null, ExcludeCharacters.Distinct()))}]";
+			}
+			else
+			{
+				filler = ".";
+			}
+			string regex = "^(";
+			if (CharacterAtPosition.Count > 0 || CharactersNotAtPosition.Count > 0)
+			{
+				var maxPosition = Math.Max(CharacterAtPosition.Keys.Max(), CharactersNotAtPosition.Keys.Max());
+				if (RestrictWordLength)
+				{
+					if (IsLengthRange && maxPosition > WordMaxLength)
+					{
+						throw new FinderRuleConflictException("There is at least one 'Character at position' or 'Character not at position' rule beyond the maximum word length.");
+					}
+					if (!IsLengthRange && maxPosition > WordLength)
+					{
+						throw new FinderRuleConflictException("There is at least one 'Character at position' or 'Character not at position' rule beyond the word length.");
+					}
+				}
+				int buffer = 0;
+				for (int i = 1; i <= maxPosition; i++)
+				{
+					if (CharacterAtPosition.TryGetValue(i, out var c))
+					{
+						if (buffer > 0)
+						{
+							regex += $"{filler}{{{buffer}}}";
+							buffer = 0;
+						}
+						regex += $"[{EscapeCharacters(c)}]";
+					}
+					else if (CharactersNotAtPosition.TryGetValue(i, out var xChars))
+					{
+						if (buffer > 0)
+						{
+							regex += $"{filler}{{{buffer}}}";
+							buffer = 0;
+						}
+						if (OnlyThese)
+						{
+							// The filler specifies the allowed characters
+							regex += $"(?![{EscapeCharacters(string.Join(null, xChars))}]){filler}";
+						}
+						else
+						{
+							// It can be any character except the excluded ones
+							regex += $"[^{EscapeCharacters(string.Join(null, xChars.Concat(ExcludeCharacters).Distinct()))}]";
+						}
+					}
+					else
+					{
+						buffer++;
+					}
+				}
+				// buffer should be 0 so we can ignore it now
+				// - It is only incremented when there more character positions to handle
+				// - It is reset to 0 when a character position is handled
+				// - The loop ends when the last character position is handled (i == maxPosition)
+				// - Therefore buffer should be 0
+				Debug.Assert(buffer == 0);
+				// Add filler for remaining characters to match length requirements
+				if (RestrictWordLength)
+				{
+					if (IsLengthRange)
+					{
+						// Range length
+						if (WordMaxLength != null && WordMaxLength > maxPosition)
+						{
+							if (WordMinLength != null && WordMinLength > maxPosition)
+							{
+								regex += $"{filler}{{{WordMinLength - maxPosition},{WordMaxLength - maxPosition}}}";
+							}
+							else
+							{
+								// Ignore min length because it is already met or not set
+								regex += $"{filler}{{0,{WordMaxLength - maxPosition}}}";
+							}
+						}
+						else if (WordMaxLength == null)
+						{
+							// No max length
+							if (WordMinLength != null && WordMinLength > maxPosition)
+							{
+								regex += $"{filler}{{{WordMinLength - maxPosition},}}";
+							}
+							else
+							{
+								regex += $"{filler}*";
+							}
+						}
+						else
+						{
+							// Already reached the max length, nothing more to add
+						}
+					}
+					else
+					{
+						// Exact length
+						regex += $"{filler}{{{WordLength - maxPosition}}}";
+					}
+				}
+				else
+				{
+					// Any length
+					regex += $"{filler}*";
 				}
 			}
 			else
 			{
-				regex += "+";
-			}
-			// Separate using line end
-			regex += ")$";
-
-			// Create rules to handle character restrictions
-			List<CharRule> rules = [];
-			if ((RestrictCount & CountRestriction.ExactCount) == CountRestriction.ExactCount)
-			{
-				rules.AddRange(charactersWithCount.Select(r => r.ConvertToRule(CharacterRule.ExactCount)));
-			}
-			else if ((RestrictCount & CountRestriction.MinCount) == CountRestriction.MinCount)
-			{
-				rules.AddRange(charactersWithCount.Select(r => r.ConvertToRule(CharacterRule.MinCount)));
-			}
-			else if ((RestrictCount & CountRestriction.MaxCount) == CountRestriction.MaxCount)
-			{
-				rules.AddRange(charactersWithCount.Select(r => r.ConvertToRule(CharacterRule.MaxCount)));
-			}
-			// RestrictExactCount and RestrictMinCount already cause the characters to be required.
-			if (IncludeAll && 
-				(RestrictCount & CountRestriction.ExactCount | RestrictCount & CountRestriction.MinCount) == CountRestriction.None)
-			{
-				// Not using ConvertToRule because we only want at least one of each character
-				rules.AddRange(charactersWithCount.Select(
-					r => new CharRule
+				// There are no character position rules
+				// regex == "^(" here
+				if (RestrictWordLength)
+				{
+					if (IsLengthRange)
 					{
-						Character = r.Character,
-						Number = 1,
-						// Require at least one
-						RuleType = CharacterRule.MinCount
+						if (WordMinLength == null && WordMaxLength == null)
+						{
+							// Any Length
+							regex += $"{filler}+";
+						}
+						else
+						{
+							regex += $"{filler}{{{WordMinLength ?? 0},{(WordMaxLength != null ? WordMaxLength : "")}}}";
+						}
 					}
-				));
+					else
+					{
+						// Exact length
+						regex += $"{filler}{{{WordLength}}}";
+					}
+				}
+				else
+				{
+					// Any Length
+					regex += $"{filler}+";
+				}
 			}
-			// Build final regex string
-			string ruleRegex = "";
-			foreach (CharRule rule in CharacterRules.Concat(rules))
+			// Cap regex
+			regex += ")$";
+			// Adjust character count constraints using IncludeAll
+			if (IncludeAll)
 			{
-				ruleRegex += rule.ConvertToRegex();
+				// Add minimum count restriction if it is not already set
+				RestrictCount |= CountRestriction.MinCount;
 			}
-			return $"{ruleRegex}{(ExcludeCharacters.Length > 0 ? $"(?!.*[{EscapeCharacters(ExcludeCharacters)}].*)" : "")}{regex}";
+
+			// Handle character count requirements
+			// Count the number of times each character appears
+			Dictionary<char, int> charCounts = [];
+			foreach (char c in Characters)
+			{
+				if (charCounts.TryGetValue(c, out var count))
+				{
+					charCounts[c] = count + 1;
+				}
+				else
+				{
+					charCounts.Add(c, 1);
+				}
+			}
+			// Add constraints for each character
+			foreach (var cc in charCounts)
+			{
+				if ((RestrictCount & CountRestriction.ExactCount) == CountRestriction.ExactCount)
+				{
+					if (CharacterCount.TryGetValue(cc.Key, out var constraint))
+					{
+						// Overwrites existing constraint
+						constraint.ExactCount = cc.Value;
+					}
+					else
+					{
+						CharacterCount.Add(cc.Key, new CountConstraint { ExactCount = cc.Value });
+					}
+				}
+				else if ((RestrictCount & CountRestriction.MinCount) == CountRestriction.MinCount)
+				{
+					if (CharacterCount.TryGetValue(cc.Key, out var constraint))
+					{
+						// Keep the tighter constraint
+						if (constraint.MinCount == null || cc.Value > constraint.MinCount)
+						{
+							constraint.MinCount = cc.Value;
+						}
+					}
+					else
+					{
+						CharacterCount.Add(cc.Key, new CountConstraint { MinCount = cc.Value });
+					}
+				}
+				else if ((RestrictCount & CountRestriction.MaxCount) == CountRestriction.MaxCount)
+				{
+					if (CharacterCount.TryGetValue(cc.Key, out var constraint))
+					{
+						// Keep the tighter constraint
+						if (constraint.MaxCount == null || cc.Value < constraint.MaxCount)
+						{
+							constraint.MaxCount = cc.Value;
+						}
+					}
+					else
+					{
+						CharacterCount.Add(cc.Key, new CountConstraint { MaxCount = cc.Value });
+					}
+				}
+			}
+			// Build character count regex
+			string countRegex = "";
+			foreach (var cc in CharacterCount)
+			{
+				countRegex += cc.Value.ToRegex(cc.Key);
+			}
+			return $"{countRegex}{regex}";
 		}
 
 		/// <summary>
@@ -323,30 +569,6 @@ namespace WordFinder
 		public List<string> FindWordsFromFile(string FilePath)
 		{
 			return FindWords(File.ReadAllText(FilePath).ReplaceLineEndings("\n"));
-		}
-
-		static private List<CharNum> GetCharactersWithCount(string Characters)
-		{
-			List<CharNum> list = [];
-			foreach (char c in Characters)
-			{
-				int i = list.FindIndex(j => j.Character == c);
-				if (i < 0)
-				{
-					list.Add(
-						new CharNum
-						{
-							Character = c,
-							Number = 1
-						}
-					);
-				}
-				else
-				{
-					list[i].Number++;
-				}
-			}
-			return list;
 		}
 		static public string EscapeCharacters(string str)
 		{
