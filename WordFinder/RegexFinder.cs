@@ -506,20 +506,13 @@ namespace WordFinder
 		/// <returns></returns>
 		public static List<string> FindWords(string ToSearch, string regex)
 		{
-
-			MatchCollection matches = Regex.Matches(
-				ToSearch,
-				regex,
-				RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.ExplicitCapture
-			);
 			List<string> words = [];
-			foreach (Match match in matches.Cast<Match>())
+			foreach (Match match in Regex.Matches(ToSearch, regex, RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.ExplicitCapture))
 			{
-				words.Add(match.Groups[0].Value);
+				words.Add(match.Value);
 			}
 			return words;
 		}
-
 		public List<string> FindWords(string ToSearch)
 		{
 			return FindWords(ToSearch, GetRegex());
