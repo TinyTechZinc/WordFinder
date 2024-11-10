@@ -59,7 +59,7 @@
 		<views:CustomKeyboardButtonView KeyCharacter="K" Grid.Column="15" Grid.Row="1" />
 		<views:CustomKeyboardButtonView KeyCharacter="L" Grid.Column="17" Grid.Row="1" />
 		
-		<views:CustomKeyboardButtonView KeyCharacter="?" Grid.Column="1" Grid.Row="2" />
+		<views:CustomKeyboardButtonView KeyCharacter="." Grid.Column="1" Grid.Row="2" x:Name="KeySpecial"/>
 		<views:CustomKeyboardButtonView KeyCharacter="Z" Grid.Column="3" Grid.Row="2" />
 		<views:CustomKeyboardButtonView KeyCharacter="X" Grid.Column="5" Grid.Row="2" />
 		<views:CustomKeyboardButtonView KeyCharacter="C" Grid.Column="7" Grid.Row="2" />
@@ -67,6 +67,6 @@
 		<views:CustomKeyboardButtonView KeyCharacter="B" Grid.Column="11" Grid.Row="2" />
 		<views:CustomKeyboardButtonView KeyCharacter="N" Grid.Column="13" Grid.Row="2" />
 		<views:CustomKeyboardButtonView KeyCharacter="M" Grid.Column="15" Grid.Row="2" />
-		<views:CustomKeyboardButtonView KeyCharacter="←" Grid.Column="17" Grid.Row="2" />
+		<views:CustomKeyboardButtonView KeyCharacter="←" Grid.Column="17" Grid.Row="2" x:Name="KeyBack"/>
 	</Grid>
 </ContentView>

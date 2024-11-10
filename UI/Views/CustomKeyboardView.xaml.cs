@@ -6,12 +6,16 @@ namespace UI.Views;
 public partial class CustomKeyboardView : ContentView
 {
 	public event EventHandler<char?>? KeyPressed;
+	public event EventHandler? BackPressed;
+	public event EventHandler? SpecialPressed;
 	public CustomKeyboardView()
 	{
 		InitializeComponent();
+		KeyBack.Pressed += OnBackPressed;
+		KeySpecial.Pressed += OnSpecialPressed;
 		foreach (var child in GridKeys)
 		{
-			if (child is CustomKeyboardButtonView button)
+			if (child is CustomKeyboardButtonView button && child != KeyBack && child != KeySpecial)
 				button.Pressed += OnKeyPressed;
 		}
 		// This my best attempt to get key board input... It only works while the page menu is in focus :(
@@ -27,5 +31,13 @@ public partial class CustomKeyboardView : ContentView
 	public void OnKeyPressed(object? sender, string c)
 	{
 		KeyPressed?.Invoke(sender, c.ElementAtOrDefault(0));
+	}
+	public void OnBackPressed(object? sender, string e)
+	{
+		BackPressed?.Invoke(sender, new EventArgs());
+	}
+	public void OnSpecialPressed(object? sender, string e)
+	{
+		SpecialPressed?.Invoke(sender, new EventArgs());
 	}
 }
