@@ -7,6 +7,7 @@ namespace UI.Pages;
 
 public partial class SolverPage : ContentPage
 {
+	private static char SpecialCharacter = '.';
 	private SolverWordView? _selectedWord = null;
 	private SolverWordView? SelectedWord
 	{
@@ -50,7 +51,7 @@ public partial class SolverPage : ContentPage
 	}
 	private void MyKeyboard_SpecialPressed(object? sender, EventArgs e)
 	{
-		SelectedWord?.TypeLetter('.');
+		SelectedWord?.TypeLetter(SpecialCharacter);
 	}
 	private void MyKeyboard_BackPressed(object? sender, EventArgs e)
 	{
@@ -108,6 +109,9 @@ public partial class SolverPage : ContentPage
 			HashSet<char> lettersToLimit = [];
 			foreach (var state in word.GetStates())
 			{
+				// The special/any character does not really have much functionality
+				// - It allows the word to be completed without adding more constraints
+				if (wordString[i] == SpecialCharacter) continue;
 				switch (state)
 				{
 					case SolverLetterView.SolverLetterStates.Good:
