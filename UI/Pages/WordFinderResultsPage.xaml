@@ -4,6 +4,9 @@
 			 x:Class="UI.Pages.WordFinderResultsPage"
 			 x:Name="this"
 			 Title="Words Found">
+	<ContentPage.ToolbarItems>
+		<ToolbarItem x:Name="ToolCopyRegex" Text="Copy Regex" Clicked="ToolCopyRegex_Clicked" IsEnabled="False" />
+	</ContentPage.ToolbarItems>
 	<ScrollView>
 		<VerticalStackLayout
 			x:Name="ListWords"

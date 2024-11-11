@@ -292,6 +292,7 @@ public partial class SolverPage : ContentPage
 		Dictionary<string, object> param = new()
 		{
 			{ "Words", foundWords },
+			{ "Regex", regex }
 		};
 		await Shell.Current.GoToAsync("WordFinderResultsPage", param);
 	}
