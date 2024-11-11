@@ -430,7 +430,7 @@ namespace WordFinder
 			}
 
 			// Handle character count requirements
-			if (RestrictCount == CountRestrictions.None)
+			if (RestrictCount != CountRestrictions.None)
 			{
 				// Count the number of times each character appears
 				Dictionary<char, int> charCounts = [];
