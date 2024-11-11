@@ -85,6 +85,8 @@ namespace WordFinder
 				if (ExactCount != null)
 				{
 					regex += $"(?=(.*[{EscapeCharacters(character)}].*){{{ExactCount}}})";
+					// Negative lookahead to ensure the character does not appear more than the exact count
+					regex += $"(?!(.*[{EscapeCharacters(character)}].*){{{ExactCount + 1}}})";
 				}
 				// We cannot combine MinCount and MaxCount because MaxCount must be a negative lookahead
 				else
@@ -378,7 +380,7 @@ namespace WordFinder
 							// Already reached the max length, nothing more to add
 						}
 					}
-					else
+					else if (WordLength > maxPosition)
 					{
 						// Exact length
 						regex += $"{filler}{{{WordLength - maxPosition}}}";
