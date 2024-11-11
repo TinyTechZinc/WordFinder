@@ -5,9 +5,17 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 	xmlns:local="clr-namespace:UI"
 	xmlns:pages="clr-namespace:UI.Pages"
-	Shell.FlyoutBehavior="Flyout"
-	Title="Word Finder">
-
+	Title="Word Finder"
+	FlyoutBehavior="Flyout"
+	Shell.NavBarIsVisible="True">
+	<ShellContent
+		Title="Finder"
+		ContentTemplate="{DataTemplate pages:FinderPage}"
+		Route="Finder" />
+	<ShellContent
+		Title="Solver"
+		ContentTemplate="{DataTemplate pages:SolverPage}"
+		Route="Solver" />
 	<!--<ShellContent
 		Title="Home"
 		ContentTemplate="{DataTemplate local:MainPage}"
@@ -16,13 +24,5 @@
 		Title="Word Game"
 		ContentTemplate="{DataTemplate pages:WordGamePage}"
 		Route="WordGame" />-->
-	<!--<ShellContent
-		Title="Solver"
-		ContentTemplate="{DataTemplate pages:SolverPage}"
-		Route="Solver" />-->
-	<ShellContent
-		Title="Finder"
-		ContentTemplate="{DataTemplate pages:FinderPage}"
-		Route="Finder" />
 
 </Shell>

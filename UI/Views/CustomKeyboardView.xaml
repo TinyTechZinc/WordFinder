@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="UI.Views.CustomKeyboardView"
+			 xmlns:views="clr-namespace:UI.Views">
+	<ContentView.Resources>
+		<ResourceDictionary>
+			<Style TargetType="views:CustomKeyboardButtonView">
+				<Setter Property="Grid.ColumnSpan" Value="2" />
+			</Style>
+		</ResourceDictionary>
+	</ContentView.Resources>
+	<Grid x:Name="GridKeys" Padding="5" ColumnSpacing="3" RowSpacing="3" >
+		<Grid.RowDefinitions>
+			<RowDefinition />
+			<RowDefinition />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+		</Grid.ColumnDefinitions>
+		<views:CustomKeyboardButtonView KeyCharacter="Q" Grid.Column="0" />
+		<views:CustomKeyboardButtonView KeyCharacter="W" Grid.Column="2" />
+		<views:CustomKeyboardButtonView KeyCharacter="E" Grid.Column="4" />
+		<views:CustomKeyboardButtonView KeyCharacter="R" Grid.Column="6" />
+		<views:CustomKeyboardButtonView KeyCharacter="T" Grid.Column="8" />
+		<views:CustomKeyboardButtonView KeyCharacter="Y" Grid.Column="10" />
+		<views:CustomKeyboardButtonView KeyCharacter="U" Grid.Column="12" />
+		<views:CustomKeyboardButtonView KeyCharacter="I" Grid.Column="14" />
+		<views:CustomKeyboardButtonView KeyCharacter="O" Grid.Column="16" />
+		<views:CustomKeyboardButtonView KeyCharacter="P" Grid.Column="18" />
+		
+		<views:CustomKeyboardButtonView KeyCharacter="A" Grid.Column="1" Grid.Row="1" />
+		<views:CustomKeyboardButtonView KeyCharacter="S" Grid.Column="3" Grid.Row="1" />
+		<views:CustomKeyboardButtonView KeyCharacter="D" Grid.Column="5" Grid.Row="1" />
+		<views:CustomKeyboardButtonView KeyCharacter="F" Grid.Column="7" Grid.Row="1" />
+		<views:CustomKeyboardButtonView KeyCharacter="G" Grid.Column="9" Grid.Row="1" />
+		<views:CustomKeyboardButtonView KeyCharacter="H" Grid.Column="11" Grid.Row="1" />
+		<views:CustomKeyboardButtonView KeyCharacter="J" Grid.Column="13" Grid.Row="1" />
+		<views:CustomKeyboardButtonView KeyCharacter="K" Grid.Column="15" Grid.Row="1" />
+		<views:CustomKeyboardButtonView KeyCharacter="L" Grid.Column="17" Grid.Row="1" />
+		
+		<views:CustomKeyboardButtonView KeyCharacter="." Grid.Column="1" Grid.Row="2" x:Name="KeySpecial"/>
+		<views:CustomKeyboardButtonView KeyCharacter="Z" Grid.Column="3" Grid.Row="2" />
+		<views:CustomKeyboardButtonView KeyCharacter="X" Grid.Column="5" Grid.Row="2" />
+		<views:CustomKeyboardButtonView KeyCharacter="C" Grid.Column="7" Grid.Row="2" />
+		<views:CustomKeyboardButtonView KeyCharacter="V" Grid.Column="9" Grid.Row="2" />
+		<views:CustomKeyboardButtonView KeyCharacter="B" Grid.Column="11" Grid.Row="2" />
+		<views:CustomKeyboardButtonView KeyCharacter="N" Grid.Column="13" Grid.Row="2" />
+		<views:CustomKeyboardButtonView KeyCharacter="M" Grid.Column="15" Grid.Row="2" />
+		<views:CustomKeyboardButtonView KeyCharacter="←" Grid.Column="17" Grid.Row="2" x:Name="KeyBack"/>
+	</Grid>
+</ContentView>
