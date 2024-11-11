@@ -5,9 +5,9 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 	xmlns:local="clr-namespace:UI"
 	xmlns:pages="clr-namespace:UI.Pages"
-	Shell.FlyoutBehavior="Flyout"
-	Title="Word Finder">
-
+	Title="Word Finder"
+	FlyoutBehavior="Flyout"
+	Shell.NavBarIsVisible="True">
 	<ShellContent
 		Title="Finder"
 		ContentTemplate="{DataTemplate pages:FinderPage}"

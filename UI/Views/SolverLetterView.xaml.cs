@@ -21,7 +21,7 @@ public partial class SolverLetterView : ContentView
 				SolverLetterStates.None => Colors.Transparent,
 				SolverLetterStates.Good => Colors.SpringGreen,
 				SolverLetterStates.Bad => Colors.Silver,
-				SolverLetterStates.Partial => Colors.PeachPuff,
+				SolverLetterStates.Partial => Colors.Khaki,
 				_ => Colors.Transparent,
 			};
 		}
@@ -42,8 +42,9 @@ public partial class SolverLetterView : ContentView
 	{
 		InitializeComponent();
 	}
-	public SolverLetterView(char letter, bool canToggle = true) : this()
+	public SolverLetterView(char letter, SolverLetterStates state, bool canToggle = true) : this()
 	{
+		LetterState = state;
 		Letter = letter;
 		CanToggle = canToggle;
 	}
@@ -58,11 +59,13 @@ public partial class SolverLetterView : ContentView
 			_ => SolverLetterStates.None,
 		};
 	}
+	public event EventHandler? LetterClicked;
 	private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
 	{
 		if (CanToggle)
 		{
 			ToggleState();
 		}
+		LetterClicked?.Invoke(this, EventArgs.Empty);
 	}
 }

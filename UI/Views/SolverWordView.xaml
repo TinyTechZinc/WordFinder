@@ -1,12 +1,39 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
 			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-			 x:Class="UI.Views.SolverWordView">
-	<HorizontalStackLayout>
-		<HorizontalStackLayout x:Name="LetterHolder" />
-		<VerticalStackLayout>
-			<Button Text="Edit" />
-			<Button Text="Remove" />
-		</VerticalStackLayout>
-	</HorizontalStackLayout>
+			 xmlns:views="clr-namespace:UI.Views"
+			 x:Class="UI.Views.SolverWordView"
+			 x:Name="this"
+			 BindingContext="{Reference this}" >
+	<ContentView.Resources>
+		<Style TargetType="views:SolverLetterView">
+			<Setter Property="WidthRequest" Value="{Binding LetterWidth, Source={Reference this}}" />
+		</Style>
+	</ContentView.Resources>
+	<Grid ColumnSpacing="5" >
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition />
+			<ColumnDefinition Width="Auto" />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition />
+		</Grid.RowDefinitions>
+		<Grid.GestureRecognizers>
+			<TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"/>
+		</Grid.GestureRecognizers>
+		<StackLayout x:Name="StackContainer">
+			<Border HorizontalOptions="Center" Stroke="{Binding BorderColor}" >
+				<Border.StrokeShape>
+					<RoundRectangle CornerRadius="3,3,3,3"/>
+				</Border.StrokeShape>
+				<HorizontalStackLayout x:Name="LetterHolder" Spacing="5" Padding="5" />
+			</Border>
+		</StackLayout>
+		<Button x:Name="ButtonRemove"
+				IsVisible="{Binding CanRemove}"
+				Text="🗑"
+				Clicked="ButtonRemove_Clicked"
+				Grid.Column="1"
+				Margin="0,5,0,5" />
+	</Grid>
 </ContentView>
