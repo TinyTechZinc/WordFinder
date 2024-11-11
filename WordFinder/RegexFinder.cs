@@ -430,64 +430,67 @@ namespace WordFinder
 			}
 
 			// Handle character count requirements
-			// Count the number of times each character appears
-			Dictionary<char, int> charCounts = [];
-			foreach (char c in Characters)
+			if (RestrictCount == CountRestrictions.None)
 			{
-				if (charCounts.TryGetValue(c, out var count))
+				// Count the number of times each character appears
+				Dictionary<char, int> charCounts = [];
+				foreach (char c in Characters)
 				{
-					charCounts[c] = count + 1;
-				}
-				else
-				{
-					charCounts.Add(c, 1);
-				}
-			}
-			// Add constraints for each character
-			foreach (var cc in charCounts)
-			{
-				if ((RestrictCount & CountRestrictions.ExactCount) == CountRestrictions.ExactCount)
-				{
-					if (CharacterCount.TryGetValue(cc.Key, out var constraint))
+					if (charCounts.TryGetValue(c, out var count))
 					{
-						// Overwrites existing constraint
-						constraint.ExactCount = cc.Value;
+						charCounts[c] = count + 1;
 					}
 					else
 					{
-						CharacterCount.Add(cc.Key, new CountConstraint { ExactCount = cc.Value });
+						charCounts.Add(c, 1);
 					}
 				}
-				else // If the exact count is used, the min and max can be ignored
+				// Add constraints for each character
+				foreach (var cc in charCounts)
 				{
-					if ((RestrictCount & CountRestrictions.MinCount) == CountRestrictions.MinCount)
+					if ((RestrictCount & CountRestrictions.ExactCount) == CountRestrictions.ExactCount)
 					{
 						if (CharacterCount.TryGetValue(cc.Key, out var constraint))
 						{
-							// Keep the tighter constraint
-							if (constraint.MinCount == null || cc.Value > constraint.MinCount)
-							{
-								constraint.MinCount = cc.Value;
-							}
+							// Overwrites existing constraint
+							constraint.ExactCount = cc.Value;
 						}
 						else
 						{
-							CharacterCount.Add(cc.Key, new CountConstraint { MinCount = cc.Value });
+							CharacterCount.Add(cc.Key, new CountConstraint { ExactCount = cc.Value });
 						}
 					}
-					if ((RestrictCount & CountRestrictions.MaxCount) == CountRestrictions.MaxCount)
+					else // If the exact count is used, the min and max can be ignored
 					{
-						if (CharacterCount.TryGetValue(cc.Key, out var constraint))
+						if ((RestrictCount & CountRestrictions.MinCount) == CountRestrictions.MinCount)
 						{
-							// Keep the tighter constraint
-							if (constraint.MaxCount == null || cc.Value < constraint.MaxCount)
+							if (CharacterCount.TryGetValue(cc.Key, out var constraint))
 							{
-								constraint.MaxCount = cc.Value;
+								// Keep the tighter constraint
+								if (constraint.MinCount == null || cc.Value > constraint.MinCount)
+								{
+									constraint.MinCount = cc.Value;
+								}
+							}
+							else
+							{
+								CharacterCount.Add(cc.Key, new CountConstraint { MinCount = cc.Value });
 							}
 						}
-						else
+						if ((RestrictCount & CountRestrictions.MaxCount) == CountRestrictions.MaxCount)
 						{
-							CharacterCount.Add(cc.Key, new CountConstraint { MaxCount = cc.Value });
+							if (CharacterCount.TryGetValue(cc.Key, out var constraint))
+							{
+								// Keep the tighter constraint
+								if (constraint.MaxCount == null || cc.Value < constraint.MaxCount)
+								{
+									constraint.MaxCount = cc.Value;
+								}
+							}
+							else
+							{
+								CharacterCount.Add(cc.Key, new CountConstraint { MaxCount = cc.Value });
+							}
 						}
 					}
 				}

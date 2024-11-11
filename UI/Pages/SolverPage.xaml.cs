@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using UI.Views;
 using WordFinder;
 using WordFinder.Exceptions;
@@ -88,13 +89,13 @@ public partial class SolverPage : ContentPage
 		// Gather constraints
 		RegexFinder finder = new()
 		{
-			IncludeAll = true,
 			RestrictWordLength = true,
 			IsLengthRange = false,
 			WordLength = WordLength
 		};
 		char[] letterPositions = new char[WordLength];
 		HashSet<char>[] lettersNotAtPosition = new HashSet<char>[WordLength];
+		List<char> allCharacters = [];
 		for (int i = 0; i < WordLength; i++)
 		{
 			lettersNotAtPosition[i] = [];
@@ -200,6 +201,8 @@ public partial class SolverPage : ContentPage
 				}
 				// Otherwise, it has already been limited.
 			}
+			// Add good and partial characters to all characters
+			allCharacters.AddRange(letterCount.Keys);
 		}
 		// Add position constraints
 		for (int i = 0; i < WordLength; i++)
@@ -240,13 +243,40 @@ public partial class SolverPage : ContentPage
 				}
 			}
 		}
+		// Add characters (so it can be used for validation); this *should* not affect the search
+		finder.Characters = new string(allCharacters.Distinct().ToArray());
 		// Search
-		var regex = finder.GetRegex().ToLower();
-		await DisplayAlert("Regex (for debugging)", regex.Replace("\n", "\\n"), "OK");
-		var foundWords = (await Task.Run(async () =>
+		string regex = "";
+		List<string> foundWords = [];
+		try
 		{
-			return RegexFinder.FindWords(await Globals.GetAllWords(), regex).AsEnumerable();
-		})).ToList();
+			regex = finder.GetRegex().ToLower();
+			await DisplayAlert("Regex (for debugging)", regex.Replace("\n", "\\n"), "OK");
+			foundWords = (await Task.Run(async () =>
+			{
+				return RegexFinder.FindWords(await Globals.GetAllWords(), regex).AsEnumerable();
+			})).ToList();
+		}
+		catch (FinderRuleConflictException ex)
+		{
+			await DisplayAlert("Rule Conflict", ex.Message, "OK");
+			return;
+		}
+		catch (FinderDuplicateRuleException e)
+		{
+			await DisplayAlert("Rule Conflict", e.Message, "OK");
+			return;
+		}
+		catch
+		{
+			await DisplayAlert("Error", $"Something went wrong. Regex: \"{regex}\"", "OK");
+			return;
+		}
+		//catch
+		//{
+		//	throw;
+		//}
+
 		// Display
 		if (foundWords.Count == 0)
 		{
