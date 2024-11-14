@@ -29,3 +29,22 @@ body:
       default: 0
     validations:
       required: true
+  - type: dropdown
+    id: page
+    attributes:
+      label: App page(s) affected
+      description: What page(s) in the app are affected?
+      multiple: true
+      options:
+        - Finder
+        - Solver
+        - Other (fill in below)
+    validations:
+      required: false
+  - type: input
+    id: page_other
+    attributes:
+      label: Other app page(s) affected
+      description: If any, what other page(s) in the app are affected?
+    validation:
+      required: false
