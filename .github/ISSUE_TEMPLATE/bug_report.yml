@@ -46,5 +46,5 @@ body:
     attributes:
       label: Other app page(s) affected
       description: If any, what other page(s) in the app are affected?
-    validation:
+    validations:
       required: false
