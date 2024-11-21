@@ -1,0 +1,60 @@
+name: Feature Request
+description: Ask for something to be added.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the new feature
+      description: Provide a concise description of what you want. Is it based on an existing feature?
+      placeholder: 
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: New feature benefits
+      description: What are the advantages of this feature? Why should it be added?
+    validations:
+      required: true
+  - type: textarea
+    id: reason-bad
+    attributes:
+      label: New feature consequences
+      description: What are potential arguements against this feature? Why should it not be added?
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform(s)
+      description: Is this feature for specific platform(s)? If so, which ones?
+      multiple: true
+      options:
+        - Android
+        - Windows
+        - IOS
+        - MacOS
+      default: 0
+    validations:
+      required: false
+  - type: dropdown
+    id: page
+    attributes:
+      label: Target app page(s)
+      description: Is this feature for one of the existing page(s) or a new one?
+      multiple: true
+      options:
+        - Finder
+        - Solver
+        - Other (fill in below)
+        - <New Page>
+    validations:
+      required: false
+  - type: input
+    id: page_other
+    attributes:
+      label: Other target app page(s)
+      description: If any, what other page(s) is this feature for?
+    validations:
+      required: false
