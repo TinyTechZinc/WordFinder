@@ -25,11 +25,13 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 		}
 	}
 
-	private void ButtonSearch_Clicked(object sender, EventArgs e)
+	private async void ButtonSearch_Clicked(object sender, EventArgs e)
 	{
-		DoSearch();
+		ButtonSearch.IsEnabled = false;
+		await DoSearch();
+		ButtonSearch.IsEnabled = true;
 	}
-	private async void DoSearch()
+	private async Task DoSearch()
 	{
 		string characters = EntryCharacters.Text ?? "";
 		//if (!CheckBoxOnlyThese.IsChecked && !CheckBoxIncludeAll.IsChecked && PickerCount.SelectedIndex == (int)WordRegex.CountRestriction.None && characters.Length > 0)
@@ -121,10 +123,10 @@ public partial class FinderPage : ContentPage, IQueryAttributable
 		{
 			regex = Finder.GetRegex();
 			await DisplayAlert("Regex (for debugging)", regex.Replace("\n", "\\n"), "OK");
-			foundWords = (await Task.Run(async () =>
+			foundWords = [.. (await Task.Run(async () =>
 			{
 				return RegexFinder.FindWords(await Globals.GetAllWords(), regex).AsEnumerable();
-			})).ToList();
+			}))];
 		}
 		catch (FinderRuleConflictException ex)
 		{

@@ -7,7 +7,7 @@ namespace UI.Pages;
 
 public partial class SolverPage : ContentPage
 {
-	private static char SpecialCharacter = '.';
+	private const char SpecialCharacter = '.';
 	private SolverWordView? _selectedWord = null;
 	private SolverWordView? SelectedWord
 	{
@@ -74,7 +74,7 @@ public partial class SolverPage : ContentPage
 		SelectedWord.RemoveClicked += Word_RemoveClicked;
 		WordHolder.Children.Add(SelectedWord);
 	}
-	public async void Search()
+	public async Task Search()
 	{
 		// Check if all words are complete
 		if (WordHolder.Children.Count == 0)
@@ -248,7 +248,7 @@ public partial class SolverPage : ContentPage
 			}
 		}
 		// Add characters (so it can be used for validation); this *should* not affect the search
-		finder.Characters = new string(allCharacters.Distinct().ToArray());
+		finder.Characters = new string([.. allCharacters.Distinct()]);
 		// Search
 		string regex = "";
 		List<string> foundWords = [];
@@ -256,10 +256,10 @@ public partial class SolverPage : ContentPage
 		{
 			regex = finder.GetRegex().ToLower();
 			await DisplayAlert("Regex (for debugging)", regex.Replace("\n", "\\n"), "OK");
-			foundWords = (await Task.Run(async () =>
+			foundWords = [.. await Task.Run(async () =>
 			{
 				return RegexFinder.FindWords(await Globals.GetAllWords(), regex).AsEnumerable();
-			})).ToList();
+			})];
 		}
 		catch (FinderRuleConflictException ex)
 		{
@@ -322,8 +322,10 @@ public partial class SolverPage : ContentPage
 	{
 		AddWord();
 	}
-	private void ToolSearch_Clicked(object sender, EventArgs e)
+	private async void ToolSearch_Clicked(object sender, EventArgs e)
 	{
-		Search();
+		ToolSearch.IsEnabled = false;
+		await Search();
+		ToolSearch.IsEnabled = true;
 	}
 }
