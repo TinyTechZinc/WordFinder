@@ -1,0 +1,52 @@
+name: Bug Report
+description: File a bug report.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: Provide a concise description of the bug. Include screenshots and steps to reproduce if applicable.
+      placeholder: 
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      description: What platforms does this bug affect?
+      multiple: true
+      options:
+        - Android
+        - Windows
+        - IOS
+        - MacOS
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: page
+    attributes:
+      label: App page(s) affected
+      description: What page(s) in the app are affected?
+      multiple: true
+      options:
+        - Finder
+        - Solver
+        - Other (fill in below)
+    validations:
+      required: false
+  - type: input
+    id: page_other
+    attributes:
+      label: Other app page(s) affected
+      description: If any, what other page(s) in the app are affected?
+    validations:
+      required: false
