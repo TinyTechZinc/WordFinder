@@ -93,7 +93,7 @@ public partial class CharacterRulePopup : Popup
 		ButtonAddRule.IsEnabled = false;
 		if (TryCreateRule(RuleCharacter, RuleTypeIndex, RuleNumber, out var rule))
 		{
-			await CloseAsync(rule, new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token);
+			await CloseAsync(new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token);
 		}
 		ButtonAddRule.IsEnabled = true;
 	}
